@@ -133,7 +133,7 @@ Built by **Roy Shomron**, first-year Applied Mathematics & Computer Engineering 
 
 Passionate about quantitative finance, AI/ML, and building tools that make complex fields accessible to everyone.
 
-- [LinkedIn](https://www.linkedin.com/in/YOURLINKEDINUSERNAME)
+- [LinkedIn](https://www.linkedin.com/in/roy-shomron-818146226/)
 - [Live Site](https://quantworld-alpha.vercel.app)
 
 ---
