@@ -4,7 +4,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 
 function Backtest() {
   const navigate = useNavigate();
-  const [ticker, setTicker] = useState("SPY");
+  const urlParams = new URLSearchParams(window.location.search);
+  const [ticker, setTicker] = useState(urlParams.get("ticker") || "SPY");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
