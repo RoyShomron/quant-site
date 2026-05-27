@@ -74,7 +74,7 @@ function Home() {
           </div>
         </div>
         <div style={{ position: "absolute", bottom: 100, left: 0, right: 0, overflow: "hidden" }}>
-          <div style={{ display: "flex", gap: 0, animation: "scroll 30s linear infinite reverse", whiteSpace: "nowrap", width: "max-content" }}>
+         <div style={{ display: "flex", gap: 0, animation: "scroll-reverse 30s linear infinite", whiteSpace: "nowrap", width: "max-content", position: "relative", right: "-50%" }}>
             {[...TICKERS, ...TICKERS].map((t, i) => (
               <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.7)", border: "1px solid #e0f2fe", borderRadius: 12, padding: "10px 20px", margin: "0 8px" }}>
                 <img src={TICKER_LOGOS[t.split(" ")[0]]} alt="" style={{ width: 22, height: 22, borderRadius: 4, objectFit: "contain" }} onError={e => e.target.style.display = "none"} />
@@ -334,6 +334,7 @@ function Home() {
 
       <style>{`
         @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        @keyframes scroll-reverse { from { transform: translateX(-50%); } to { transform: translateX(0%); } }
         * { box-sizing: border-box; margin: 0; padding: 0; }
       `}</style>
     </div>
