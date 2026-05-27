@@ -3,6 +3,21 @@ import { useNavigate } from "react-router-dom";
 
 const TICKERS = ["AAPL +1.2%", "TSLA -0.8%", "SPY +0.5%", "NVDA +3.1%", "MSFT +0.9%", "AMZN -0.3%", "GOOGL +1.7%", "META +2.1%", "BRK -0.1%", "JPM +0.6%", "V +0.4%", "NFLX +1.9%"];
 
+const TICKER_LOGOS = {
+  "AAPL": "https://www.apple.com/favicon.ico",
+  "TSLA": "https://www.tesla.com/favicon.ico",
+  "SPY": "https://www.ssga.com/favicon.ico",
+  "NVDA": "https://www.nvidia.com/favicon.ico",
+  "MSFT": "https://www.microsoft.com/favicon.ico",
+  "AMZN": "https://www.amazon.com/favicon.ico",
+  "GOOGL": "https://www.google.com/favicon.ico",
+  "META": "https://www.meta.com/favicon.ico",
+  "BRK": "https://www.berkshirehathaway.com/favicon.ico",
+  "JPM": "https://www.jpmorganchase.com/favicon.ico",
+  "V": "https://www.visa.com/favicon.ico",
+  "NFLX": "https://www.netflix.com/favicon.ico",
+};
+
 function Home() {
   const navigate = useNavigate();
   const observerRef = useRef(null);
@@ -45,20 +60,28 @@ function Home() {
       {/* Hero */}
       <section style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "120px 24px 80px", background: "linear-gradient(180deg, #f0f9ff 0%, #fff 100%)", position: "relative", overflow: "hidden" }}>
 
-        {/* Top ticker tape */}
-        <div style={{ position: "absolute", top: 80, left: 0, right: 0, overflow: "hidden", opacity: 0.15 }}>
-          <div style={{ display: "flex", gap: 48, animation: "scroll 30s linear infinite", whiteSpace: "nowrap", width: "max-content" }}>
+       {/* Top ticker tape */}
+        <div style={{ position: "absolute", top: 80, left: 0, right: 0, overflow: "hidden" }}>
+          <div style={{ display: "flex", gap: 0, animation: "scroll 40s linear infinite", whiteSpace: "nowrap", width: "max-content" }}>
             {[...TICKERS, ...TICKERS].map((t, i) => (
-              <span key={i} style={{ fontSize: 13, fontWeight: 700, color: "#0ea5e9", fontFamily: "monospace" }}>{t}</span>
+              <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.7)", border: "1px solid #e0f2fe", borderRadius: 12, padding: "10px 20px", margin: "0 8px" }}>
+                <img src={TICKER_LOGOS[t.split(" ")[0]]} alt="" style={{ width: 22, height: 22, borderRadius: 4, objectFit: "contain" }} onError={e => e.target.style.display = "none"} />
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", fontFamily: "monospace" }}>{t.split(" ")[0]}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: t.includes("+") ? "#16a34a" : "#dc2626", fontFamily: "monospace" }}>{t.split(" ")[1]}</span>
+              </div>
             ))}
           </div>
         </div>
 
         {/* Bottom ticker tape */}
-        <div style={{ position: "absolute", bottom: 120, left: 0, right: 0, overflow: "hidden", opacity: 0.1 }}>
-          <div style={{ display: "flex", gap: 48, animation: "scroll 20s linear infinite reverse", whiteSpace: "nowrap", width: "max-content" }}>
+        <div style={{ position: "absolute", bottom: 100, left: 0, right: 0, overflow: "hidden" }}>
+          <div style={{ display: "flex", gap: 0, animation: "scroll 30s linear infinite reverse", whiteSpace: "nowrap", width: "max-content" }}>
             {[...TICKERS, ...TICKERS].map((t, i) => (
-              <span key={i} style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", fontFamily: "monospace" }}>{t}</span>
+              <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.7)", border: "1px solid #e0f2fe", borderRadius: 12, padding: "10px 20px", margin: "0 8px" }}>
+                <img src={TICKER_LOGOS[t.split(" ")[0]]} alt="" style={{ width: 22, height: 22, borderRadius: 4, objectFit: "contain" }} onError={e => e.target.style.display = "none"} />
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", fontFamily: "monospace" }}>{t.split(" ")[0]}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: t.includes("+") ? "#16a34a" : "#dc2626", fontFamily: "monospace" }}>{t.split(" ")[1]}</span>
+              </div>
             ))}
           </div>
         </div>
