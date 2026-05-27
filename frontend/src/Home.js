@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-const TICKERS = ["AAPL +1.2%", "TSLA -0.8%", "SPY +0.5%", "NVDA +3.1%", "MSFT +0.9%", "AMZN -0.3%", "GOOGL +1.7%", "UBER +0.8%", "AMD -0.5%", "JPM +0.6%", "V +0.4%", "NFLX +1.9%"];
+const TICKERS = ["AAPL +1.2%", "TSLA -0.8%", "SPY +0.5%", "NVDA +3.1%", "MSFT +0.9%", "AMZN -0.3%", "GOOGL +1.7%", "UBER +0.8%", "JPM +0.6%", "V +0.4%", "NFLX +1.9%"];
 
 const TICKER_LOGOS = {
   "AAPL": "https://www.apple.com/favicon.ico",
@@ -132,7 +132,7 @@ function Home() {
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="fade-in" style={{ textAlign: "center", marginBottom: 64 }}>
             <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Built for beginners.<br />Powerful enough for everyone.</h2>
-            <p style={{ fontSize: 18, color: "#64748b", maxWidth: 500, margin: "0 auto" }}>No finance degree needed. No confusing jargon. Just clear, honest results.</p>
+            <p style={{ fontSize: 18, color: "#64748b", maxWidth: 500, margin: "0 auto" }}>No finance degree needed. No confusing terminology. Just clear, honest results.</p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 28 }}>
             {[
@@ -151,9 +151,11 @@ function Home() {
           </div>
         </div>
       </section>
-      {/* What is backtesting */}
-      <section style={{ padding: "100px 48px", background: "#fff" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+
+     {/* What is backtesting */}
+      <section style={{ padding: "100px 48px", background: "#fff", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", fontSize: 600, fontWeight: 900, color: "#0ea5e9", opacity: 0.1, fontFamily: "Georgia, serif", lineHeight: 1, pointerEvents: "none", userSelect: "none", zIndex: 0 }}>Q</div>
+        <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 1 }}>
           <div className="fade-in" style={{ textAlign: "center", marginBottom: 64 }}>
             <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>What is backtesting?</h2>
             <p style={{ fontSize: 18, color: "#64748b", maxWidth: 540, margin: "0 auto" }}>The concept is simple — and it's how every professional trader evaluates a strategy before risking real money.</p>
@@ -263,20 +265,52 @@ function Home() {
         </div>
       </section>
 
-      {/* About */}
-      <section style={{ padding: "100px 48px", background: "#f0f9ff" }}>
-        <div className="fade-in" style={{ maxWidth: 700, margin: "0 auto", textAlign: "center" }}>
-          <div style={{ width: 72, height: 72, background: "#0ea5e9", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", fontSize: 28 }}>👨‍💻</div>
-          <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: -1, marginBottom: 16 }}>Built by a student, for students</h2>
-          <p style={{ fontSize: 17, color: "#64748b", lineHeight: 1.8, marginBottom: 24 }}>
-            QuantWorld was built by Roy Shomron, a first-year Applied Mathematics and Computer Engineering student at Queen's University with a passion for quantitative finance and making it accessible to everyone.
-          </p>
-          <p style={{ fontSize: 17, color: "#64748b", lineHeight: 1.8, marginBottom: 32 }}>
-            Most trading tools are built for experts. This one is built for anyone who's curious about how markets work and wants to learn without being overwhelmed.
-          </p>
-          <a href="https://github.com/RoyShomron/quant-site" target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 28px", background: "#0f172a", color: "#fff", borderRadius: 10, fontSize: 15, fontWeight: 700, textDecoration: "none" }}>
-            View on GitHub →
-          </a>
+     {/* About */}
+      <section style={{ padding: "100px 48px", background: "#0f172a", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at center, rgba(14,165,233,0.08) 0%, transparent 70%)" }}></div>
+        <div className="fade-in" style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
+          
+          {/* Left — Queens logo */}
+          <div style={{ textAlign: "center" }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: "#475569", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 32 }}>A PROJECT BY</p>
+            <img
+              src="https://www.queensu.ca/sites/default/files/assets/pages/QueensLogo_white.png"
+              alt="Queen's University"
+              style={{ width: "100%", maxWidth: 600, objectFit: "contain", opacity: 0.9 }}
+              onError={e => e.target.style.display = "none"}
+            />
+          </div>
+
+          {/* Right — info */}
+         <div style={{ textAlign: "center" }}>
+            <h2 style={{ fontSize: 36, fontWeight: 800, color: "#fff", letterSpacing: -1, marginBottom: 8 }}>Roy Shomron</h2>
+            <p style={{ fontSize: 16, color: "#0ea5e9", fontWeight: 600, marginBottom: 24, letterSpacing: 0.3 }}>
+              Applied Mathematics & Computer Engineering
+            </p>
+            <p style={{ fontSize: 16, color: "#94a3b8", lineHeight: 1.8, marginBottom: 16 }}>
+              Built QuantWorld to make quantitative finance accessible to everyone — no finance degree, no fluff, just clear and honest tools for learning how markets work.
+            </p>
+            <p style={{ fontSize: 16, color: "#94a3b8", lineHeight: 1.8, marginBottom: 36 }}>
+              Passionate about quant finance, AI/ML, and building things that matter.
+            </p>
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", textAlign: "center", justifyContent: "center" }}>
+              <a href="https://github.com/RoyShomron/quant-site" target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "12px 24px", background: "rgba(255,255,255,0.05)", border: "1px solid #1e293b", borderRadius: 12, textDecoration: "none", transition: "all 0.2s" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "#0ea5e9"; e.currentTarget.style.background = "rgba(14,165,233,0.08)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "#1e293b"; e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                <span style={{ color: "#fff", fontSize: 14, fontWeight: 700 }}>GitHub</span>
+              </a>
+              <a href="https://www.linkedin.com/in/roy-shomron-818146226/" target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "12px 24px", background: "rgba(255,255,255,0.05)", border: "1px solid #1e293b", borderRadius: 12, textDecoration: "none", transition: "all 0.2s" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "#0ea5e9"; e.currentTarget.style.background = "rgba(14,165,233,0.08)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "#1e293b"; e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#0ea5e9"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                <span style={{ color: "#fff", fontSize: 14, fontWeight: 700 }}>LinkedIn</span>
+              </a>
+            </div>
+            <p style={{ color: "#ebedef", fontSize: 12, marginTop: 32, letterSpacing: 0.3, textTransform: "uppercase" }}>
+              More tools coming soon · iOS app in development
+            </p>
+          </div>
         </div>
       </section>
 
@@ -294,7 +328,7 @@ function Home() {
       {/* Footer */}
       <footer style={{ padding: "32px 48px", background: "#0f172a", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>QuantWorld</span>
-        <span style={{ color: "#475569", fontSize: 13 }}>Built by Roy Shomron · Queen's University · 2025</span>
+        <span style={{ color: "#475569", fontSize: 13 }}>Built by Roy Shomron · Queen's University · 2026</span>
         <span style={{ color: "#475569", fontSize: 13 }}>For educational purposes only</span>
       </footer>
 
