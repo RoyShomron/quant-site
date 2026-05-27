@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-const TICKERS = ["AAPL +1.2%", "TSLA -0.8%", "SPY +0.5%", "NVDA +3.1%", "MSFT +0.9%", "AMZN -0.3%", "GOOGL +1.7%", "META +2.1%", "BRK -0.1%", "JPM +0.6%", "V +0.4%", "NFLX +1.9%"];
+const TICKERS = ["AAPL +1.2%", "TSLA -0.8%", "SPY +0.5%", "NVDA +3.1%", "MSFT +0.9%", "AMZN -0.3%", "GOOGL +1.7%", "UBER +0.8%", "PYPL +0.7%", "JPM +0.6%", "V +0.4%", "NFLX +1.9%"];
 
 const TICKER_LOGOS = {
   "AAPL": "https://www.apple.com/favicon.ico",
@@ -11,8 +11,8 @@ const TICKER_LOGOS = {
   "MSFT": "https://www.microsoft.com/favicon.ico",
   "AMZN": "https://www.amazon.com/favicon.ico",
   "GOOGL": "https://www.google.com/favicon.ico",
-  "META": "https://www.meta.com/favicon.ico",
-  "BRK": "https://www.berkshirehathaway.com/favicon.ico",
+  "UBER": "https://www.uber.com/favicon.ico",
+  "PYPL": "https://www.paypal.com/favicon.ico",
   "JPM": "https://www.jpmorganchase.com/favicon.ico",
   "V": "https://www.visa.com/favicon.ico",
   "NFLX": "https://www.netflix.com/favicon.ico",
@@ -47,7 +47,10 @@ function Home() {
 
       {/* Navbar */}
       <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", borderBottom: "1px solid #e0f2fe", padding: "0 48px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: 20, fontWeight: 800, color: "#0ea5e9", letterSpacing: -0.5 }}>QuantWorld</span>
+        <span style={{ fontSize: 24, fontWeight: 900, letterSpacing: -1 }}>
+  <span style={{ color: "#0ea5e9", fontSize: 42, fontFamily: "Georgia, serif", verticalAlign: "bottom", lineHeight: 1 }}>Q</span>
+  <span style={{ color: "#0f172a" }}>uantWorld</span>
+</span>
         <div style={{ display: "flex", gap: 40, alignItems: "center" }}>
           <span onClick={() => document.getElementById("features").scrollIntoView({ behavior: "smooth" })} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>Features</span>
           <span onClick={() => document.getElementById("howitworks").scrollIntoView({ behavior: "smooth" })} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>How it works</span>

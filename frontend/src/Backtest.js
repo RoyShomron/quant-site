@@ -32,9 +32,10 @@ function Backtest() {
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "Inter, sans-serif" }}>
       <nav style={{ background: "#fff", borderBottom: "1px solid #e0f2fe", padding: "0 40px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
-        <span onClick={() => navigate("/")} style={{ fontSize: 20, fontWeight: 700, color: "#0ea5e9", cursor: "pointer", letterSpacing: -0.5 }}>
-          QuantWorld
-        </span>
+       <span onClick={() => navigate("/")} style={{ fontSize: 24, fontWeight: 900, letterSpacing: -1, cursor: "pointer" }}>
+  <span style={{ color: "#0ea5e9", fontSize: 42, fontFamily: "Georgia, serif", verticalAlign: "bottom", lineHeight: 1 }}>Q</span>
+  <span style={{ color: "#0f172a" }}>uantWorld</span>
+</span>
         <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
           <span onClick={() => navigate("/")} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>Home</span>
           <span style={{ color: "#0ea5e9", fontSize: 14, cursor: "pointer", fontWeight: 600 }}>Backtest</span>
