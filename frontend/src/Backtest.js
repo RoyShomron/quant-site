@@ -13,7 +13,7 @@ function Backtest() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/backtest?ticker=${ticker}`);
+      const response = await fetch(`https://quantworld-backend.onrender.com/backtest?ticker=${ticker}`);
       const result = await response.json();
       setData(result);
     } catch (err) {
