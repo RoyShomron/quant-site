@@ -51,6 +51,26 @@ function App() {
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
+      {/* Strategy Explanation Box */}
+      <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 12, padding: 24, marginBottom: 32 }}>
+        <h3 style={{ marginTop: 0, marginBottom: 8, color: "#1e40af" }}>How does this strategy work?</h3>
+        <p style={{ margin: "0 0 12px", lineHeight: 1.7 }}>
+          This strategy uses two <strong>moving averages</strong> — the MA20 and MA50. A moving average just takes
+          the average closing price over the last 20 or 50 days, and updates every day as new prices come in.
+          It smooths out the noise so you can see the general trend.
+        </p>
+        <p style={{ margin: "0 0 12px", lineHeight: 1.7 }}>
+          <strong>The rule is simple:</strong> when the 20-day average crosses above the 50-day average,
+          the stock is trending upward — so the strategy buys in. When it drops back below, the strategy
+          sells and sits in cash. This is called a <strong>moving average crossover</strong>.
+        </p>
+        <p style={{ margin: 0, lineHeight: 1.7 }}>
+          <strong>Buy & Hold</strong> is the baseline — you just buy the stock on day one and hold it
+          for the whole year, no matter what happens. Comparing the two shows whether the strategy's
+          active trading actually added value.
+        </p>
+      </div>
+
       {data && (
         <div>
           <h2 style={{ marginBottom: 24 }}>Results for {data.ticker}</h2>
