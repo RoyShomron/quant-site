@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 const TICKERS = ["AAPL +1.2%", "TSLA -0.8%", "SPY +0.5%", "NVDA +3.1%", "MSFT +0.9%", "AMZN -0.3%", "GOOGL +1.7%", "UBER +0.8%", "JPM +0.6%", "V +0.4%", "NFLX +1.9%"];
@@ -17,6 +17,24 @@ const TICKER_LOGOS = {
   "V": "https://www.visa.com/favicon.ico",
   "NFLX": "https://www.netflix.com/favicon.ico",
 };
+
+function FAQItem({ question, answer }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      onClick={() => setOpen(!open)}
+      style={{ background: open ? "#f0f9ff" : "#f8fafc", border: `1px solid ${open ? "#0ea5e9" : "#e0f2fe"}`, borderRadius: 16, padding: "20px 24px", cursor: "pointer", transition: "all 0.2s" }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", margin: 0 }}>{question}</h3>
+        <span style={{ fontSize: 20, color: "#0ea5e9", fontWeight: 700, transform: open ? "rotate(45deg)" : "rotate(0)", transition: "transform 0.2s", flexShrink: 0, marginLeft: 16 }}>+</span>
+      </div>
+      {open && (
+        <p style={{ color: "#64748b", lineHeight: 1.8, fontSize: 15, margin: "16px 0 0" }}>{answer}</p>
+      )}
+    </div>
+  );
+}
 
 function Home() {
   const navigate = useNavigate();
@@ -63,8 +81,8 @@ function Home() {
       {/* Hero */}
       <section style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "120px 24px 80px", background: "linear-gradient(180deg, #f0f9ff 0%, #fff 100%)", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: 80, left: 0, right: 0, overflow: "hidden" }}>
-          <div style={{ display: "flex", gap: 0, animation: "scroll 40s linear infinite", whiteSpace: "nowrap", width: "max-content" }}>
-            {[...TICKERS, ...TICKERS].map((t, i) => (
+          <div style={{ display: "flex", gap: 0, animation: "scroll 60s linear infinite", whiteSpace: "nowrap", width: "max-content" }}>
+            {[...TICKERS, ...TICKERS, ...TICKERS, ...TICKERS].map((t, i) => (
               <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.7)", border: "1px solid #e0f2fe", borderRadius: 12, padding: "10px 20px", margin: "0 8px" }}>
                 <img src={TICKER_LOGOS[t.split(" ")[0]]} alt="" style={{ width: 22, height: 22, borderRadius: 4, objectFit: "contain" }} onError={e => e.target.style.display = "none"} />
                 <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", fontFamily: "monospace" }}>{t.split(" ")[0]}</span>
@@ -73,9 +91,9 @@ function Home() {
             ))}
           </div>
         </div>
-        <div style={{ position: "absolute", bottom: 100, left: 0, right: 0, overflow: "hidden" }}>
-         <div style={{ display: "flex", gap: 0, animation: "scroll-reverse 30s linear infinite", whiteSpace: "nowrap", width: "max-content", position: "relative", right: "-50%" }}>
-            {[...TICKERS, ...TICKERS].map((t, i) => (
+        <div style={{ position: "absolute", bottom: 50, left: 0, right: 0, overflow: "hidden" }}>
+         <div style={{ display: "flex", gap: 0, animation: "scroll-reverse 60s linear infinite", whiteSpace: "nowrap", width: "max-content" }}>
+            {[...TICKERS, ...TICKERS, ...TICKERS, ...TICKERS].map((t, i) => (
               <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.7)", border: "1px solid #e0f2fe", borderRadius: 12, padding: "10px 20px", margin: "0 8px" }}>
                 <img src={TICKER_LOGOS[t.split(" ")[0]]} alt="" style={{ width: 22, height: 22, borderRadius: 4, objectFit: "contain" }} onError={e => e.target.style.display = "none"} />
                 <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", fontFamily: "monospace" }}>{t.split(" ")[0]}</span>
@@ -311,6 +329,66 @@ function Home() {
               More tools coming soon · iOS app in development
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section style={{ padding: "100px 48px", background: "#fff" }}>
+        <div style={{ maxWidth: 800, margin: "0 auto" }}>
+          <div className="fade-in" style={{ textAlign: "center", marginBottom: 64 }}>
+            <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Frequently asked questions</h2>
+            <p style={{ fontSize: 18, color: "#64748b" }}>Everything a beginner needs to know before getting started.</p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {[
+              { q: "Is this free?", a: "Yes, completely free. No signup, no credit card, no catch. QuantWorld is a passion project built to make quantitative finance accessible to everyone." },
+              { q: "What is a ticker symbol?", a: "A ticker is a short abbreviation that identifies a stock. For example, Apple is AAPL, Tesla is TSLA, and the S&P 500 index fund is SPY. You can find any company's ticker by Googling the company name followed by 'stock ticker'." },
+              { q: "Can I lose real money here?", a: "No. QuantWorld is purely educational — you are not trading real money at any point. You're testing strategies against historical data to see how they would have performed. Nothing here is financial advice." },
+              { q: "What's the difference between backtesting and real trading?", a: "Backtesting applies a strategy to past data to see how it would have performed historically. Real trading applies a strategy to live markets with real money. Past performance never guarantees future results — backtesting is a learning and research tool, not a crystal ball." },
+              { q: "Why does buy & hold sometimes beat the strategy?", a: "In strong bull markets where stocks trend upward consistently, any strategy that takes you out of the market — even temporarily — can cost you returns. The MA crossover strategy shines in volatile or bear markets where it helps avoid big drops. No strategy wins in all market conditions." },
+              { q: "What is a moving average?", a: "A moving average takes the average closing price of a stock over a set number of days and updates daily. A 20-day moving average averages the last 20 days of prices. It smooths out short-term noise so you can see the general trend more clearly." },
+              { q: "What does Sharpe ratio mean?", a: "The Sharpe ratio measures how much return you earned per unit of risk. A ratio above 1.0 is generally considered good — it means you were compensated well for the volatility you experienced. A negative Sharpe means the investment lost money on a risk-adjusted basis." },
+            ].map((item, i) => (
+              <FAQItem key={i} question={item.q} answer={item.a} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Email Signup */}
+      <section style={{ padding: "80px 48px", background: "#f0f9ff", borderTop: "1px solid #e0f2fe" }}>
+        <div className="fade-in" style={{ maxWidth: 560, margin: "0 auto", textAlign: "center" }}>
+          <div style={{ display: "inline-block", background: "#e0f2fe", color: "#0369a1", fontSize: 13, fontWeight: 700, padding: "6px 18px", borderRadius: 100, marginBottom: 20 }}>Stay in the loop</div>
+          <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: -1, marginBottom: 12, color: "#0f172a" }}>New strategies dropping soon</h2>
+          <p style={{ fontSize: 16, color: "#64748b", lineHeight: 1.7, marginBottom: 32 }}>
+            RSI, Bollinger Bands, and ML-based strategies are coming. Drop your email and be the first to know.
+          </p>
+          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+            <input
+              type="email"
+              placeholder="your@email.com"
+              id="email-input"
+              style={{ padding: "14px 20px", fontSize: 15, border: "1.5px solid #e0f2fe", borderRadius: 10, outline: "none", width: 280, color: "#0f172a" }}
+            />
+            <button
+              onClick={() => {
+                const email = document.getElementById("email-input").value;
+                if (email && email.includes("@")) {
+                  document.getElementById("email-input").value = "";
+                  document.getElementById("email-success").style.display = "block";
+                  document.getElementById("email-btn").style.display = "none";
+                }
+              }}
+              id="email-btn"
+              style={{ padding: "14px 28px", background: "#0ea5e9", color: "#fff", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer" }}
+            >
+              Notify me →
+            </button>
+            <div id="email-success" style={{ display: "none", padding: "14px 28px", background: "#dcfce7", color: "#16a34a", borderRadius: 10, fontSize: 15, fontWeight: 700 }}>
+              ✓ You're on the list!
+            </div>
+          </div>
+          <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 16 }}>No spam. Unsubscribe anytime.</p>
         </div>
       </section>
 
