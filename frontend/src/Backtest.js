@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
@@ -9,6 +9,10 @@ function Backtest() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch(`https://quantworld-backend.onrender.com/backtest?ticker=SPY`).catch(() => {});
+  }, []);
 
   const runBacktest = async () => {
     setLoading(true);
