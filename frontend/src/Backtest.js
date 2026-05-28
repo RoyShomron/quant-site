@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 function Backtest() {
   const navigate = useNavigate();
@@ -43,8 +43,6 @@ function Backtest() {
     if (type === "ratio") return val.toFixed(2);
     return val;
   };
-
-  const isPositive = (val) => val >= 0;
 
   return (
     <div style={{ minHeight: "100vh", background: "#0f172a", fontFamily: "Inter, sans-serif" }}>
