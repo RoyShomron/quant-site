@@ -154,19 +154,17 @@ function Backtest() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    fetch(`https://quantworld-backend.onrender.com/backtest?ticker=SPY`).catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const t = urlParams.get("ticker");
     if (t) {
       setTicker(t);
       setTimeout(() => runBacktestFor(t), 100);
     }
-  }, []);
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const t = urlParams.get("ticker");
-    if (t) { setTicker(t); runBacktestFor(t); }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const runBacktestFor = async (t, s = strategy, tf = timeframe) => {
     setLoading(true);
