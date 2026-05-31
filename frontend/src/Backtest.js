@@ -10,18 +10,18 @@ function MetricTabs({ data, fmt }) {
       label: "Total Return",
       icon: "💰",
       market: fmt(data.market.total_return, "pct"),
-      strategy: fmt(data.strategy.total_return, "pct"),
+      strategy: fmt(data.strategy_metrics.total_return, "pct"),
       formula: "Total Return = (Final Value − Initial Value) / Initial Value",
       formulaSub: "= ($1 × (1 + r₁) × (1 + r₂) × ... × (1 + rₙ)) − 1",
       vars: [{ var: "r₁...rₙ", desc: "Each day's percentage price change" }],
       what: "The simplest performance metric — how much did your investment grow from start to finish?",
-      result: "Buy & hold turned $1 into $" + (1 + data.market.total_return).toFixed(4) + ". The strategy turned $1 into $" + (1 + data.strategy.total_return).toFixed(4) + ". Total return alone doesn't tell you about risk — a strategy could have a high return but with terrifying volatility along the way.",
+      result: "Buy & hold turned $1 into $" + (1 + data.market.total_return).toFixed(4) + ". The strategy turned $1 into $" + (1 + data.strategy_metrics.total_return).toFixed(4) + ". Total return alone doesn't tell you about risk — a strategy could have a high return but with terrifying volatility along the way.",
     },
     {
       label: "Sharpe Ratio",
       icon: "⚖️",
       market: fmt(data.market.sharpe_ratio, "ratio"),
-      strategy: fmt(data.strategy.sharpe_ratio, "ratio"),
+      strategy: fmt(data.strategy_metrics.sharpe_ratio, "ratio"),
       formula: "Sharpe Ratio = (Rp − Rf) / σp",
       vars: [
         { var: "Rp", desc: "Portfolio return — annualized return of your investment" },
@@ -29,7 +29,7 @@ function MetricTabs({ data, fmt }) {
         { var: "σp", desc: "Portfolio standard deviation — annualized volatility of daily returns" },
       ],
       what: "How much return are you getting per unit of risk? The most widely used risk-adjusted metric in professional finance. Higher is always better.",
-      result: (data.market.sharpe_ratio > 2 ? "The market's Sharpe of " + fmt(data.market.sharpe_ratio, "ratio") + " is excellent." : data.market.sharpe_ratio > 1 ? "The market's Sharpe of " + fmt(data.market.sharpe_ratio, "ratio") + " is good — solid risk-adjusted returns." : "The market's Sharpe of " + fmt(data.market.sharpe_ratio, "ratio") + " is below 1 — returns didn't fully compensate for the volatility.") + " The strategy's Sharpe of " + fmt(data.strategy.sharpe_ratio, "ratio") + (data.strategy.sharpe_ratio > data.market.sharpe_ratio ? " is higher — more efficient with risk even if total returns are lower." : " is lower this period."),
+      result: (data.market.sharpe_ratio > 2 ? "The market's Sharpe of " + fmt(data.market.sharpe_ratio, "ratio") + " is excellent." : data.market.sharpe_ratio > 1 ? "The market's Sharpe of " + fmt(data.market.sharpe_ratio, "ratio") + " is good — solid risk-adjusted returns." : "The market's Sharpe of " + fmt(data.market.sharpe_ratio, "ratio") + " is below 1 — returns didn't fully compensate for the volatility.") + " The strategy's Sharpe of " + fmt(data.strategy_metrics.sharpe_ratio, "ratio") + (data.strategy_metrics.sharpe_ratio > data.market.sharpe_ratio ? " is higher — more efficient with risk even if total returns are lower." : " is lower this period."),
       guide: [
         { range: "Below 0", meaning: "Lost money on a risk-adjusted basis", color: "#ef4444" },
         { range: "0 — 1.0", meaning: "Returns don't fully compensate for risk", color: "#f59e0b" },
@@ -41,7 +41,7 @@ function MetricTabs({ data, fmt }) {
       label: "Volatility",
       icon: "🎢",
       market: fmt(data.market.volatility, "pct"),
-      strategy: fmt(data.strategy.volatility, "pct"),
+      strategy: fmt(data.strategy_metrics.volatility, "pct"),
       formula: "σ = std(daily_returns) × √252",
       vars: [
         { var: "std()", desc: "Standard deviation of daily returns" },
@@ -49,13 +49,13 @@ function MetricTabs({ data, fmt }) {
         { var: "√252", desc: "Annualizes daily volatility to a yearly figure" },
       ],
       what: "How bumpy was the ride? Higher means bigger swings — both gains and losses. Lower means a smoother, more predictable experience.",
-      result: "Buy & hold volatility of " + fmt(data.market.volatility, "pct") + (data.market.volatility > 0.3 ? " is very high — this stock moves dramatically." : data.market.volatility > 0.2 ? " is moderately high — expect significant daily swings." : data.market.volatility > 0.1 ? " is moderate — typical for a large cap stock." : " is low — stable ride.") + " The strategy reduced this to " + fmt(data.strategy.volatility, "pct") + " by sitting in cash during uncertain periods.",
+      result: "Buy & hold volatility of " + fmt(data.market.volatility, "pct") + (data.market.volatility > 0.3 ? " is very high — this stock moves dramatically." : data.market.volatility > 0.2 ? " is moderately high — expect significant daily swings." : data.market.volatility > 0.1 ? " is moderate — typical for a large cap stock." : " is low — stable ride.") + " The strategy reduced this to " + fmt(data.strategy_metrics.volatility, "pct") + " by sitting in cash during uncertain periods.",
     },
     {
       label: "Max Drawdown",
       icon: "📉",
       market: fmt(data.market.max_drawdown, "pct"),
-      strategy: fmt(data.strategy.max_drawdown, "pct"),
+      strategy: fmt(data.strategy_metrics.max_drawdown, "pct"),
       formula: "Max Drawdown = min((Vt − Vpeak) / Vpeak)",
       vars: [
         { var: "Vt", desc: "Portfolio value at time t" },
@@ -63,13 +63,13 @@ function MetricTabs({ data, fmt }) {
         { var: "min()", desc: "Most negative value across all days" },
       ],
       what: "The worst peak-to-trough decline you would have experienced. The most psychologically important metric — most investors panic-sell during large drawdowns and lock in losses permanently.",
-      result: "If you held " + data.ticker + ", your worst drop was " + fmt(data.market.max_drawdown, "pct") + ". " + (Math.abs(data.market.max_drawdown) > 0.2 ? "Severe — watching that in real time tests any investor's conviction." : Math.abs(data.market.max_drawdown) > 0.1 ? "Significant but manageable for a long-term investor." : "Relatively mild — this stock held up well.") + " The strategy's max drawdown was " + fmt(data.strategy.max_drawdown, "pct") + (Math.abs(data.strategy.max_drawdown) < Math.abs(data.market.max_drawdown) ? " — smaller, meaning exit signals helped protect capital." : " — larger, meaning strategy timing increased downside exposure."),
+      result: "If you held " + data.ticker + ", your worst drop was " + fmt(data.market.max_drawdown, "pct") + ". " + (Math.abs(data.market.max_drawdown) > 0.2 ? "Severe — watching that in real time tests any investor's conviction." : Math.abs(data.market.max_drawdown) > 0.1 ? "Significant but manageable for a long-term investor." : "Relatively mild — this stock held up well.") + " The strategy's max drawdown was " + fmt(data.strategy_metrics.max_drawdown, "pct") + (Math.abs(data.strategy_metrics.max_drawdown) < Math.abs(data.market.max_drawdown) ? " — smaller, meaning exit signals helped protect capital." : " — larger, meaning strategy timing increased downside exposure."),
     },
     {
       label: "Annual Return",
       icon: "📅",
       market: fmt(data.market.annualized_return, "pct"),
-      strategy: fmt(data.strategy.annualized_return, "pct"),
+      strategy: fmt(data.strategy_metrics.annualized_return, "pct"),
       formula: "Annualized Return = (1 + avg_daily_return)^252 − 1",
       vars: [
         { var: "avg_daily_return", desc: "Mean of all daily percentage returns" },
@@ -147,12 +147,19 @@ function MetricTabs({ data, fmt }) {
 function Backtest() {
   const navigate = useNavigate();
   const [ticker, setTicker] = useState("SPY");
+  const [strategy, setStrategy] = useState("ma_crossover");
+  const [timeframe, setTimeframe] = useState("1y");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`https://quantworld-backend.onrender.com/backtest?ticker=SPY`).catch(() => {});
+    const urlParams = new URLSearchParams(window.location.search);
+    const t = urlParams.get("ticker");
+    if (t) {
+      setTicker(t);
+      setTimeout(() => runBacktestFor(t), 100);
+    }
   }, []);
 
   useEffect(() => {
@@ -161,12 +168,14 @@ function Backtest() {
     if (t) { setTicker(t); runBacktestFor(t); }
   }, []);
 
-  const runBacktestFor = async (t) => {
+  const runBacktestFor = async (t, s = strategy, tf = timeframe) => {
     setLoading(true);
     setError(null);
+    setData(null);
     try {
-      const response = await fetch(`https://quantworld-backend.onrender.com/backtest?ticker=${t}`);
+      const response = await fetch(`https://quantworld-backend.onrender.com/backtest?ticker=${t}&strategy=${s}&timeframe=${tf}`);
       const result = await response.json();
+      console.log("API result:", result);
       setData(result);
     } catch (err) {
       setError("Something went wrong. Make sure the backend is running.");
@@ -225,11 +234,26 @@ function Backtest() {
           </div>
           <div>
             <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>Strategy</label>
-            <div style={{ padding: "12px 20px", background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, color: "#475569", fontSize: 15, minWidth: 260 }}>MA Crossover (20/50) — more coming soon</div>
+            <select
+              value={strategy}
+              onChange={(e) => setStrategy(e.target.value)}
+              style={{ padding: "12px 20px", background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, color: "#fff", fontSize: 15, minWidth: 260, outline: "none", cursor: "pointer" }}
+            >
+              <option value="ma_crossover">MA Crossover (20/50)</option>
+              <option value="rsi">RSI Strategy (30/70)</option>
+            </select>
           </div>
           <div>
             <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>Period</label>
-            <div style={{ padding: "12px 20px", background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, color: "#475569", fontSize: 15, minWidth: 180 }}>1 Year — more coming soon</div>
+            <select
+              value={timeframe}
+              onChange={(e) => setTimeframe(e.target.value)}
+              style={{ padding: "12px 20px", background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, color: "#fff", fontSize: 15, minWidth: 180, outline: "none", cursor: "pointer" }}
+            >
+              <option value="1y">1 Year</option>
+              <option value="3y">3 Years</option>
+              <option value="5y">5 Years</option>
+            </select>
           </div>
           <button
             onClick={runBacktest}
@@ -299,23 +323,23 @@ function Backtest() {
             </div>
 
             {/* Winner banner */}
-            <div style={{ background: data.strategy.total_return > data.market.total_return ? "rgba(34,197,94,0.1)" : "rgba(14,165,233,0.1)", border: `1px solid ${data.strategy.total_return > data.market.total_return ? "#22c55e" : "#0ea5e9"}`, borderRadius: 16, padding: "20px 28px", marginBottom: 28, display: "flex", alignItems: "center", gap: 16 }}>
-              <span style={{ fontSize: 32 }}>{data.strategy.total_return > data.market.total_return ? "🏆" : "📈"}</span>
+            {data.strategy_metrics && <div style={{ background: data.strategy_metrics.total_return > data.market.total_return ? "rgba(34,197,94,0.1)" : "rgba(14,165,233,0.1)", border: `1px solid ${data.strategy_metrics.total_return > data.market.total_return ? "#22c55e" : "#0ea5e9"}`, borderRadius: 16, padding: "20px 28px", marginBottom: 28, display: "flex", alignItems: "center", gap: 16 }}>
+              <span style={{ fontSize: 32 }}>{data.strategy_metrics.total_return > data.market.total_return ? "🏆" : "📈"}</span>
               <div>
                 <p style={{ color: "#fff", fontSize: 18, fontWeight: 700, margin: 0, marginBottom: 4 }}>
-                  {data.strategy.total_return > data.market.total_return
-                    ? `MA Strategy won — ${fmt(data.strategy.total_return, "pct")} vs Buy & Hold's ${fmt(data.market.total_return, "pct")}`
-                    : `Buy & Hold won — ${fmt(data.market.total_return, "pct")} vs Strategy's ${fmt(data.strategy.total_return, "pct")}`
+                  {data.strategy_metrics.total_return > data.market.total_return
+                    ? `MA Strategy won — ${fmt(data.strategy_metrics.total_return, "pct")} vs Buy & Hold's ${fmt(data.market.total_return, "pct")}`
+                    : `Buy & Hold won — ${fmt(data.market.total_return, "pct")} vs Strategy's ${fmt(data.strategy_metrics.total_return, "pct")}`
                   }
                 </p>
                 <p style={{ color: "#64748b", fontSize: 14, margin: 0 }}>
-                  {data.strategy.total_return > data.market.total_return
+                  {data.strategy_metrics.total_return > data.market.total_return
                     ? "The strategy successfully avoided downturns in this volatile period."
                     : "Common in strong bull markets — consistent uptrend made sitting in cash costly."
                   }
                 </p>
               </div>
-            </div>
+            </div>}
 
             {/* Chart — full width, large */}
             <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: 36, marginBottom: 28 }}>
@@ -353,7 +377,7 @@ function Backtest() {
             </div>
 
             {/* Metric Tabs */}
-            <MetricTabs data={data} fmt={fmt} />
+            {data.strategy_metrics && <MetricTabs data={data} fmt={fmt} />}
 
           </div>
         )}

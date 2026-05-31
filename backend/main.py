@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 import yfinance as yf
 import pandas as pd
+from datetime import datetime, timedelta
 
-from contextlib import asynccontextmanager
+cache = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -42,19 +44,67 @@ def max_drawdown(cumulative_series):
     drawdown = cumulative_series / running_max - 1
     return float(drawdown.min())
 
+def compute_rsi(series, period=14):
+    delta = series.diff()
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+    avg_gain = gain.rolling(window=period).mean()
+    avg_loss = loss.rolling(window=period).mean()
+    rs = avg_gain / avg_loss
+    return 100 - (100 / (1 + rs))
+
+def get_period_string(timeframe: str) -> str:
+    if timeframe == "3y":
+        return "3y"
+    elif timeframe == "5y":
+        return "5y"
+    return "1y"
+
 @app.get("/backtest")
-def run_backtest(ticker: str = "SPY", strategy: str = "ma_crossover"):
-    df = yf.download(ticker, period="1y", auto_adjust=True)
+def run_backtest(ticker: str = "SPY", strategy: str = "ma_crossover", timeframe: str = "1y"):
+    cache_key = f"{ticker}_{strategy}_{timeframe}"
+    now = datetime.now()
+    if cache_key in cache and now - cache[cache_key]["timestamp"] < timedelta(minutes=30):
+        return cache[cache_key]["data"]
+
+    period = get_period_string(timeframe)
+    df = yf.download(ticker, period=period, auto_adjust=True)
+
+    if df.empty:
+        return {"error": f"No data found for ticker {ticker}"}
+
+    # Flatten MultiIndex columns if present
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
 
     df["Return"] = df["Close"].pct_change()
     df["Cumulative"] = (1 + df["Return"]).cumprod()
-    df["MA20"] = df["Close"].rolling(window=20).mean()
-    df["MA50"] = df["Close"].rolling(window=50).mean()
-    df["Signal"] = (df["MA20"] > df["MA50"]).astype(int)
-    df["Position"] = df["Signal"].shift(1)
+
+    if strategy == "rsi":
+        df["RSI"] = compute_rsi(df["Close"])
+        df["Signal"] = 0
+        position = 0
+        signals = []
+        for i in range(len(df)):
+            rsi_val = df["RSI"].iloc[i]
+            if pd.isna(rsi_val):
+                signals.append(0)
+                continue
+            if rsi_val < 30:
+                position = 1
+            elif rsi_val > 70:
+                position = 0
+            signals.append(position)
+        df["Signal"] = signals
+        df["Position"] = df["Signal"].shift(1)
+    else:
+        df["MA20"] = df["Close"].rolling(window=20).mean()
+        df["MA50"] = df["Close"].rolling(window=50).mean()
+        df["Signal"] = (df["MA20"] > df["MA50"]).astype(int)
+        df["Position"] = df["Signal"].shift(1)
+
     df["StrategyReturn"] = df["Return"] * df["Position"]
     df["StrategyCumulative"] = (1 + df["StrategyReturn"]).cumprod()
-
     df = df.dropna()
 
     chart_data = []
@@ -71,8 +121,10 @@ def run_backtest(ticker: str = "SPY", strategy: str = "ma_crossover"):
             "strategy": round(float(strategy_val), 4),
         })
 
-    return {
+    result = {
         "ticker": ticker.upper(),
+        "strategy": strategy,
+        "timeframe": timeframe,
         "market": {
             "total_return": total_return(df["Cumulative"]),
             "annualized_return": annualized_return(df["Return"]),
@@ -80,7 +132,7 @@ def run_backtest(ticker: str = "SPY", strategy: str = "ma_crossover"):
             "sharpe_ratio": sharpe_ratio(df["Return"]),
             "max_drawdown": max_drawdown(df["Cumulative"]),
         },
-        "strategy": {
+        "strategy_metrics": {
             "total_return": total_return(df["StrategyCumulative"]),
             "annualized_return": annualized_return(df["StrategyReturn"]),
             "volatility": annualized_vol(df["StrategyReturn"]),
@@ -89,3 +141,6 @@ def run_backtest(ticker: str = "SPY", strategy: str = "ma_crossover"):
         },
         "chart_data": chart_data,
     }
+
+    cache[cache_key] = {"data": result, "timestamp": now}
+    return result
