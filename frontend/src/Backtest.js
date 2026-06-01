@@ -88,9 +88,9 @@ function MetricTabs({ data, fmt }) {
   return (
     <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, overflow: "hidden" }}>
       {/* Tab Headers */}
-      <div style={{ display: "flex", borderBottom: "1px solid #334155" }}>
+      <div style={{ display: "flex", borderBottom: "1px solid #334155", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
         {tabs.map((tab, i) => (
-          <button key={i} onClick={() => setActiveTab(i)} style={{ flex: 1, padding: "20px 16px", background: activeTab === i ? "#0f172a" : "transparent", border: "none", borderBottom: activeTab === i ? "3px solid #0ea5e9" : "3px solid transparent", cursor: "pointer", transition: "all 0.2s" }}>
+          <button key={i} onClick={() => setActiveTab(i)} style={{ flex: isMobile ? "0 0 140px" : 1, padding: "20px 16px", background: activeTab === i ? "#0f172a" : "transparent", border: "none", borderBottom: activeTab === i ? "3px solid #0ea5e9" : "3px solid transparent", cursor: "pointer", transition: "all 0.2s" }}>
             <div style={{ fontSize: 24, marginBottom: 8 }}>{tab.icon}</div>
             <div style={{ fontSize: 12, fontWeight: 700, color: activeTab === i ? "#0ea5e9" : "#475569", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 10 }}>{tab.label}</div>
             <div style={{ fontSize: 13, color: "#475569", marginBottom: 4 }}>B&H: <span style={{ color: "#0ea5e9", fontWeight: 800, fontSize: 15 }}>{tab.market}</span></div>
@@ -100,7 +100,7 @@ function MetricTabs({ data, fmt }) {
       </div>
 
       {/* Tab Content */}
-      <div style={{ padding: 40 }}>
+      <div style={{ padding: isMobile ? 20 : 40 }}>
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 16 : 32, marginBottom: 32 }}>
           {/* Formula */}
           <div style={{ background: "#0f172a", borderRadius: 14, padding: 24, border: "1px solid #334155" }}>
@@ -415,7 +415,7 @@ function Backtest() {
 
             {/* Chart — full width, large */}
             <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: 36, marginBottom: 28 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+              <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, gap: isMobile ? 12 : 0 }}>
                 <div>
                   <h3 style={{ fontWeight: 800, color: "#fff", marginBottom: 6, fontSize: 22 }}>Growth of $1 Invested</h3>
                   <p style={{ color: "#64748b", fontSize: 15 }}>How $1 invested at the start would have grown. Hover to see exact values on any date.</p>
