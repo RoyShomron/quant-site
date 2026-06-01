@@ -248,10 +248,10 @@ function Home() {
       </section>
 
       {/* Live Market Snapshot */}
-      <section style={{ padding: "100px 48px", background: "#fff" }}>
+      <section style={{ padding: isMobile ? "60px 20px" : "100px 48px", background: "#fff" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="fade-in" style={{ textAlign: "center", marginBottom: 64 }}>
-            <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Live market snapshot</h2>
+            <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Live market snapshot</h2>
             <p style={{ fontSize: 18, color: "#64748b", maxWidth: 500, margin: "0 auto" }}>Click any stock to instantly run a backtest on it.</p>
           </div>
           <div className="fade-in" style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 12 : 20 }}>
@@ -335,10 +335,10 @@ function Home() {
       </section>
 
       {/* FAQ */}
-      <section style={{ padding: "100px 48px", background: "#fff" }}>
+      <section style={{ padding: isMobile ? "60px 20px" : "100px 48px", background: "#fff" }}>
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
           <div className="fade-in" style={{ textAlign: "center", marginBottom: 64 }}>
-            <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Frequently asked questions</h2>
+            <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Frequently asked questions</h2>
             <p style={{ fontSize: 18, color: "#64748b" }}>Everything a beginner needs to know before getting started.</p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -358,7 +358,7 @@ function Home() {
       </section>
 
       {/* Email Signup */}
-      <section style={{ padding: "80px 48px", background: "#f0f9ff", borderTop: "1px solid #e0f2fe" }}>
+      <section style={{ padding: isMobile ? "60px 20px" : "80px 48px", background: "#f0f9ff", borderTop: "1px solid #e0f2fe" }}>
         <div className="fade-in" style={{ maxWidth: 560, margin: "0 auto", textAlign: "center" }}>
           <div style={{ display: "inline-block", background: "#e0f2fe", color: "#0369a1", fontSize: 13, fontWeight: 700, padding: "6px 18px", borderRadius: 100, marginBottom: 20 }}>Stay in the loop</div>
           <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: -1, marginBottom: 12, color: "#0f172a" }}>New strategies dropping soon</h2>

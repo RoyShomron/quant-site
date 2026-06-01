@@ -341,7 +341,7 @@ function Backtest() {
 
         {/* Empty state */}
         {!data && !loading && !error && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 32 }}>
             <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: 48, textAlign: "center" }}>
               <div style={{ fontSize: 56, marginBottom: 20 }}>📊</div>
               <h3 style={{ color: "#fff", fontWeight: 700, fontSize: 22, marginBottom: 12 }}>Ready to backtest</h3>
