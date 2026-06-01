@@ -87,7 +87,6 @@ function MetricTabs({ data, fmt }) {
 
   return (
     <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, overflow: "hidden" }}>
-      {/* Tab Headers */}
       <div style={{ display: "flex", borderBottom: "1px solid #334155", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
         {tabs.map((tab, i) => (
           <button key={i} onClick={() => setActiveTab(i)} style={{ flex: isMobile ? "0 0 140px" : 1, padding: "20px 16px", background: activeTab === i ? "#0f172a" : "transparent", border: "none", borderBottom: activeTab === i ? "3px solid #0ea5e9" : "3px solid transparent", cursor: "pointer", transition: "all 0.2s" }}>
@@ -98,14 +97,11 @@ function MetricTabs({ data, fmt }) {
           </button>
         ))}
       </div>
-
-      {/* Tab Content */}
       <div style={{ padding: isMobile ? 20 : 40 }}>
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 16 : 32, marginBottom: 32 }}>
-          {/* Formula */}
           <div style={{ background: "#0f172a", borderRadius: 14, padding: 24, border: "1px solid #334155" }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: "#0ea5e9", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.08em" }}>Formula</div>
-            <div style={{ fontFamily: "monospace", fontSize: 16, color: "#e2e8f0", marginBottom: active.formulaSub ? 8 : 0, lineHeight: 1.5 }}>{active.formula}</div>
+            <div style={{ fontFamily: "monospace", fontSize: isMobile ? 13 : 16, color: "#e2e8f0", marginBottom: active.formulaSub ? 8 : 0, lineHeight: 1.5 }}>{active.formula}</div>
             {active.formulaSub && <div style={{ fontFamily: "monospace", fontSize: 13, color: "#64748b", marginBottom: 16 }}>{active.formulaSub}</div>}
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 16 }}>
               {active.vars && active.vars.map((v) => (
@@ -116,8 +112,6 @@ function MetricTabs({ data, fmt }) {
               ))}
             </div>
           </div>
-
-          {/* What it measures */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ background: "#0f172a", borderRadius: 14, padding: 24, border: "1px solid #334155", flex: 1 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: "#0ea5e9", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.08em" }}>What it measures</div>
@@ -136,8 +130,6 @@ function MetricTabs({ data, fmt }) {
             )}
           </div>
         </div>
-
-        {/* Your Result */}
         <div style={{ background: "#0f172a", borderRadius: 14, padding: 24, border: "1px solid #0ea5e9" }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: "#0ea5e9", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.08em" }}>Your result for {data.ticker}</div>
           <p style={{ color: "#e2e8f0", fontSize: 16, lineHeight: 1.8, margin: 0 }}>{active.result}</p>
@@ -148,24 +140,26 @@ function MetricTabs({ data, fmt }) {
 }
 function Backtest() {
   const navigate = useNavigate();
+  const { isMobile } = useWindowSize();
   const [ticker, setTicker] = useState("AAPL");
-  const [strategy, setStrategy] = useState("rsi");
-  const [timeframe, setTimeframe] = useState("3y");
+  const [strategy, setStrategy] = useState("ma_crossover");
+  const [timeframe, setTimeframe] = useState("1y");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { isMobile } = useWindowSize();
 
   useEffect(() => {
-    fetch(`https://quantworld-backend.onrender.com/backtest?ticker=AAPL`).catch(() => {});
+    fetch(`https://quantworld-backend.onrender.com/backtest?ticker=SPY`).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const t = urlParams.get("ticker");
+    const s = urlParams.get("strategy");
     if (t) {
       setTicker(t);
-      setTimeout(() => runBacktestFor(t), 100);
+      if (s) setStrategy(s);
+      setTimeout(() => runBacktestFor(t, s || strategy, timeframe), 100);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -193,16 +187,18 @@ function Backtest() {
     return val;
   };
 
+  const strategyName = strategy === "rsi" ? "RSI Strategy" : strategy === "bollinger" ? "Bollinger Bands" : "MA Strategy";
+
   return (
     <div style={{ minHeight: "100vh", background: "#0f172a", fontFamily: "Inter, sans-serif" }}>
 
       {/* Navbar */}
-      <nav style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid #1e293b", padding: "0 40px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
+      <nav style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid #1e293b", padding: isMobile ? "0 20px" : "0 40px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
         <span onClick={() => navigate("/")} style={{ fontSize: 24, fontWeight: 900, letterSpacing: -1, cursor: "pointer" }}>
           <span style={{ color: "#0ea5e9", fontSize: 42, fontFamily: "Georgia, serif", verticalAlign: "bottom", lineHeight: 1 }}>Q</span>
           <span style={{ color: "#fff" }}>uantWorld</span>
         </span>
-        <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
           <span onClick={() => navigate("/")} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>Home</span>
           <span onClick={() => navigate("/learn")} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>Learn</span>
           <span style={{ color: "#0ea5e9", fontSize: 14, fontWeight: 600 }}>Backtest</span>
@@ -210,18 +206,18 @@ function Backtest() {
       </nav>
 
       {/* Page Header */}
-      <div style={{ borderBottom: "1px solid #1e293b", padding: "40px 48px 32px" }}>
+      <div style={{ borderBottom: "1px solid #1e293b", padding: isMobile ? "24px 20px 20px" : "40px 48px 32px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 8px #22c55e" }}></div>
             <span style={{ fontSize: 12, color: "#22c55e", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}>Live market data</span>
           </div>
-          <h1 style={{ fontSize: 36, fontWeight: 800, color: "#fff", letterSpacing: -1, marginBottom: 8 }}>Strategy Backtester</h1>
-          <p style={{ color: "#64748b", fontSize: 16 }}>Test any trading strategy against real historical data. See exactly how it would have performed.</p>
+          <h1 style={{ fontSize: isMobile ? 28 : 36, fontWeight: 800, color: "#fff", letterSpacing: -1, marginBottom: 8 }}>Strategy Backtester</h1>
+          <p style={{ color: "#64748b", fontSize: isMobile ? 14 : 16 }}>Test any trading strategy against real historical data. See exactly how it would have performed.</p>
         </div>
       </div>
 
-      {/* Controls Bar — always visible at top */}
+      {/* Controls Bar */}
       <div style={{ borderBottom: "1px solid #1e293b", padding: isMobile ? "20px 20px" : "20px 48px", background: "#0f172a" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", gap: 16, alignItems: isMobile ? "flex-start" : "flex-end", flexWrap: "wrap", flexDirection: isMobile ? "column" : "row" }}>
           <div>
@@ -236,31 +232,21 @@ function Backtest() {
           </div>
           <div>
             <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>Strategy</label>
-            <select
-              value={strategy}
-              onChange={(e) => setStrategy(e.target.value)}
-              style={{ padding: "12px 20px", background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, color: "#fff", fontSize: 15, width: isMobile ? "100%" : "auto", minWidth: isMobile ? "unset" : 260, outline: "none", cursor: "pointer" }}
-            >
+            <select value={strategy} onChange={(e) => setStrategy(e.target.value)} style={{ padding: "12px 20px", background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, color: "#fff", fontSize: 15, width: isMobile ? "100%" : "auto", minWidth: isMobile ? "unset" : 260, outline: "none", cursor: "pointer" }}>
               <option value="ma_crossover">MA Crossover (20/50)</option>
               <option value="rsi">RSI Strategy (30/70)</option>
+              <option value="bollinger">Bollinger Bands (20, 2σ)</option>
             </select>
           </div>
           <div>
             <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>Period</label>
-            <select
-              value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value)}
-              style={{ padding: "12px 20px", background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, color: "#fff", fontSize: 15, width: isMobile ? "100%" : "auto", minWidth: isMobile ? "unset" : 180, outline: "none", cursor: "pointer" }}
-            >
+            <select value={timeframe} onChange={(e) => setTimeframe(e.target.value)} style={{ padding: "12px 20px", background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, color: "#fff", fontSize: 15, width: isMobile ? "100%" : "auto", minWidth: isMobile ? "unset" : 180, outline: "none", cursor: "pointer" }}>
               <option value="1y">1 Year</option>
               <option value="3y">3 Years</option>
               <option value="5y">5 Years</option>
             </select>
           </div>
-          <button
-            onClick={runBacktest}
-            style={{ padding: "12px 36px", fontSize: 16, fontWeight: 700, background: loading ? "#334155" : "#0ea5e9", color: loading ? "#64748b" : "#fff", border: "none", borderRadius: 10, cursor: loading ? "not-allowed" : "pointer", transition: "all 0.2s", width: isMobile ? "100%" : "auto" }}
-          >
+          <button onClick={runBacktest} style={{ padding: "12px 36px", fontSize: 16, fontWeight: 700, background: loading ? "#334155" : "#0ea5e9", color: loading ? "#64748b" : "#fff", border: "none", borderRadius: 10, cursor: loading ? "not-allowed" : "pointer", transition: "all 0.2s", width: isMobile ? "100%" : "auto" }}>
             {loading ? "Running..." : "Run Backtest →"}
           </button>
         </div>
@@ -268,8 +254,34 @@ function Backtest() {
 
       {/* Dynamic Strategy Explanation */}
       <div style={{ borderBottom: "1px solid #1e293b", background: "#0f172a" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 48px" }}>
-          {strategy === "ma_crossover" ? (
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: isMobile ? "24px 20px" : "32px 48px" }}>
+          {strategy === "bollinger" ? (
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+                <div style={{ background: "#8b5cf6", borderRadius: 10, padding: "6px 16px" }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#fff", textTransform: "uppercase", letterSpacing: "0.06em" }}>Bollinger Bands (20, 2σ)</span>
+                </div>
+                <span style={{ fontSize: 14, color: "#475569", fontWeight: 500 }}>Volatility-based mean reversion</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: 20 }}>
+                <div style={{ background: "#1e293b", borderRadius: 16, padding: 24, border: "1px solid #334155" }}>
+                  <div style={{ fontSize: 28, marginBottom: 12 }}>📊</div>
+                  <h4 style={{ color: "#fff", fontWeight: 700, fontSize: 15, marginBottom: 10 }}>How it works</h4>
+                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>Calculate a 20-day moving average and plot two bands <strong style={{ color: "#8b5cf6" }}>2 standard deviations</strong> above and below it. When price touches the <strong style={{ color: "#22c55e" }}>lower band</strong> — buy in. When price touches the <strong style={{ color: "#ef4444" }}>upper band</strong> — sell and hold cash.</p>
+                </div>
+                <div style={{ background: "#1e293b", borderRadius: 16, padding: 24, border: "1px solid #334155" }}>
+                  <div style={{ fontSize: 28, marginBottom: 12 }}>✅</div>
+                  <h4 style={{ color: "#22c55e", fontWeight: 700, fontSize: 15, marginBottom: 10 }}>Best conditions</h4>
+                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>Range-bound or mean-reverting markets. Works well when a stock oscillates around a stable average. The bands automatically widen during high volatility and narrow during calm periods — making them adaptive.</p>
+                </div>
+                <div style={{ background: "#1e293b", borderRadius: 16, padding: 24, border: "1px solid #334155" }}>
+                  <div style={{ fontSize: 28, marginBottom: 12 }}>⚠️</div>
+                  <h4 style={{ color: "#f59e0b", fontWeight: 700, fontSize: 15, marginBottom: 10 }}>Limitation</h4>
+                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>In strong trending markets, price can "walk the band" — hugging the upper band and continuing to rise for months. Selling every time price touches the upper band in a bull market means missing massive gains.</p>
+                </div>
+              </div>
+            </div>
+          ) : strategy === "ma_crossover" ? (
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
                 <div style={{ background: "#0ea5e9", borderRadius: 10, padding: "6px 16px" }}>
@@ -281,23 +293,17 @@ function Backtest() {
                 <div style={{ background: "#1e293b", borderRadius: 16, padding: 24, border: "1px solid #334155" }}>
                   <div style={{ fontSize: 28, marginBottom: 12 }}>📈</div>
                   <h4 style={{ color: "#fff", fontWeight: 700, fontSize: 15, marginBottom: 10 }}>How it works</h4>
-                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>
-                    Calculate the 20-day and 50-day moving averages daily. When MA20 crosses <strong style={{ color: "#22c55e" }}>above</strong> MA50 — the stock is trending up, buy in. When MA20 drops <strong style={{ color: "#ef4444" }}>below</strong> MA50 — momentum is fading, sell and hold cash.
-                  </p>
+                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>Calculate the 20-day and 50-day moving averages daily. When MA20 crosses <strong style={{ color: "#22c55e" }}>above</strong> MA50 — the stock is trending up, buy in. When MA20 drops <strong style={{ color: "#ef4444" }}>below</strong> MA50 — momentum is fading, sell and hold cash.</p>
                 </div>
                 <div style={{ background: "#1e293b", borderRadius: 16, padding: 24, border: "1px solid #334155" }}>
                   <div style={{ fontSize: 28, marginBottom: 12 }}>✅</div>
                   <h4 style={{ color: "#22c55e", fontWeight: 700, fontSize: 15, marginBottom: 10 }}>Best conditions</h4>
-                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>
-                    Trending markets with clear upswings and downswings. Protects well during bear markets and crashes by getting you out early. Used by institutional traders as a simple trend filter.
-                  </p>
+                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>Trending markets with clear upswings and downswings. Protects well during bear markets and crashes by getting you out early. Used by institutional traders as a simple trend filter.</p>
                 </div>
                 <div style={{ background: "#1e293b", borderRadius: 16, padding: 24, border: "1px solid #334155" }}>
                   <div style={{ fontSize: 28, marginBottom: 12 }}>⚠️</div>
                   <h4 style={{ color: "#f59e0b", fontWeight: 700, fontSize: 15, marginBottom: 10 }}>Limitation</h4>
-                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>
-                    Always lags — reacts after price moves happen, never before. In strong bull markets, buy & hold often wins because the strategy spends time in cash missing gains.
-                  </p>
+                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>Always lags — reacts after price moves happen, never before. In strong bull markets, buy & hold often wins because the strategy spends time in cash missing gains.</p>
                 </div>
               </div>
             </div>
@@ -313,23 +319,17 @@ function Backtest() {
                 <div style={{ background: "#1e293b", borderRadius: 16, padding: 24, border: "1px solid #334155" }}>
                   <div style={{ fontSize: 28, marginBottom: 12 }}>🔄</div>
                   <h4 style={{ color: "#fff", fontWeight: 700, fontSize: 15, marginBottom: 10 }}>How it works</h4>
-                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>
-                    RSI measures price momentum on a scale of 0-100. When RSI drops below <strong style={{ color: "#22c55e" }}>30</strong> — the stock is oversold, may bounce, buy in. When RSI rises above <strong style={{ color: "#ef4444" }}>70</strong> — the stock is overbought, may pull back, sell and hold cash.
-                  </p>
+                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>RSI measures price momentum on a scale of 0-100. When RSI drops below <strong style={{ color: "#22c55e" }}>30</strong> — the stock is oversold, may bounce, buy in. When RSI rises above <strong style={{ color: "#ef4444" }}>70</strong> — the stock is overbought, may pull back, sell and hold cash.</p>
                 </div>
                 <div style={{ background: "#1e293b", borderRadius: 16, padding: 24, border: "1px solid #334155" }}>
                   <div style={{ fontSize: 28, marginBottom: 12 }}>✅</div>
                   <h4 style={{ color: "#22c55e", fontWeight: 700, fontSize: 15, marginBottom: 10 }}>Best conditions</h4>
-                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>
-                    Range-bound or volatile markets where stocks oscillate up and down. Buys during panic selloffs and sells into rallies. Used by swing traders and contrarian investors worldwide.
-                  </p>
+                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>Range-bound or volatile markets where stocks oscillate up and down. Buys during panic selloffs and sells into rallies. Used by swing traders and contrarian investors worldwide.</p>
                 </div>
                 <div style={{ background: "#1e293b", borderRadius: 16, padding: 24, border: "1px solid #334155" }}>
                   <div style={{ fontSize: 28, marginBottom: 12 }}>⚠️</div>
                   <h4 style={{ color: "#f59e0b", fontWeight: 700, fontSize: 15, marginBottom: 10 }}>Limitation</h4>
-                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>
-                    In strong trends, RSI can stay above 70 or below 30 for months. A stock can be "overbought" and keep rising — RSI doesn't predict when a reversal will happen, only that momentum is extreme.
-                  </p>
+                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>In strong trends, RSI can stay above 70 or below 30 for months. A stock can be "overbought" and keep rising — RSI doesn't predict when a reversal will happen, only that momentum is extreme.</p>
                 </div>
               </div>
             </div>
@@ -338,7 +338,7 @@ function Backtest() {
       </div>
 
       {/* Main Content */}
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 48px" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: isMobile ? "24px 20px" : "40px 48px" }}>
 
         {/* Empty state */}
         {!data && !loading && !error && (
@@ -363,9 +363,6 @@ function Backtest() {
                   </div>
                 ))}
               </div>
-              <div style={{ marginTop: 24, padding: 16, background: "#0f172a", borderRadius: 10, border: "1px solid #334155" }}>
-                <p style={{ color: "#64748b", fontSize: 14, lineHeight: 1.7, margin: 0 }}>💡 In strong bull markets, buy & hold often wins. The MA strategy shines in volatile or bear markets by getting you out before big drops.</p>
-              </div>
             </div>
           </div>
         )}
@@ -375,6 +372,7 @@ function Backtest() {
           <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: 80, textAlign: "center" }}>
             <div style={{ width: 48, height: 48, border: "4px solid #334155", borderTop: "4px solid #0ea5e9", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 20px" }}></div>
             <p style={{ color: "#64748b", fontSize: 17 }}>Fetching market data for {ticker}...</p>
+            <p style={{ color: "#334155", fontSize: 13, marginTop: 8 }}>First load for a new ticker may take up to 30 seconds while we pull historical data from Yahoo Finance.</p>
           </div>
         )}
 
@@ -385,37 +383,71 @@ function Backtest() {
           </div>
         )}
 
-        {/* Results — full width */}
-        {data && (
+        {/* Results */}
+        {data && data.strategy_metrics && (
           <div style={{ animation: "fadeIn 0.5s ease" }}>
 
-            {/* Results header with big numbers */}
             <div style={{ marginBottom: 32 }}>
-              <h2 style={{ fontSize: 40, fontWeight: 800, color: "#fff", letterSpacing: -1.5, marginBottom: 8 }}>Results for {data.ticker}</h2>
-              <p style={{ color: "#64748b", fontSize: 16 }}>{data.strategy === "rsi" ? "RSI Strategy (30/70)" : "MA Crossover (20/50)"} vs Buy & Hold · Past {data.timeframe === "3y" ? "3 years" : data.timeframe === "5y" ? "5 years" : "12 months"}</p>
+              <h2 style={{ fontSize: isMobile ? 28 : 40, fontWeight: 800, color: "#fff", letterSpacing: -1.5, marginBottom: 8 }}>Results for {data.ticker}</h2>
+              <p style={{ color: "#64748b", fontSize: 16 }}>{strategyName} vs Buy & Hold · Past {data.timeframe === "3y" ? "3 years" : data.timeframe === "5y" ? "5 years" : "12 months"}</p>
             </div>
 
-            {/* Winner banner */}
-            {data.strategy_metrics && <div style={{ background: data.strategy_metrics.total_return > data.market.total_return ? "rgba(34,197,94,0.1)" : "rgba(14,165,233,0.1)", border: `1px solid ${data.strategy_metrics.total_return > data.market.total_return ? "#22c55e" : "#0ea5e9"}`, borderRadius: 16, padding: "20px 28px", marginBottom: 28, display: "flex", alignItems: "center", gap: 16 }}>
-              <span style={{ fontSize: 32 }}>{data.strategy_metrics.total_return > data.market.total_return ? "🏆" : "📈"}</span>
-              <div>
-                <p style={{ color: "#fff", fontSize: 18, fontWeight: 700, margin: 0, marginBottom: 4 }}>
-                  {data.strategy_metrics.total_return > data.market.total_return
-                    ? `${data.strategy === "rsi" ? "RSI Strategy" : "MA Strategy"} won — ${fmt(data.strategy_metrics.total_return, "pct")} vs Buy & Hold's ${fmt(data.market.total_return, "pct")}`
-                    : `Buy & Hold won — ${fmt(data.market.total_return, "pct")} vs Strategy's ${fmt(data.strategy_metrics.total_return, "pct")}`
-                  }
-                </p>
-                <p style={{ color: "#64748b", fontSize: 14, margin: 0 }}>
-                  {data.strategy_metrics.total_return > data.market.total_return
-                    ? "The strategy successfully avoided downturns in this volatile period."
-                    : "Common in strong bull markets — consistent uptrend made sitting in cash costly."
-                  }
-                </p>
+            {/* Scorecard */}
+            <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 16, padding: 24, marginBottom: 28 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+                <h3 style={{ color: "#fff", fontWeight: 800, fontSize: 18, margin: 0 }}>How did each approach perform?</h3>
+                <span style={{ fontSize: 13, color: "#475569" }}>Winning on each dimension</span>
               </div>
-            </div>}
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(5, 1fr)", gap: 12 }}>
+                {[
+                  { label: "Total Return", icon: "📈", marketVal: data.market.total_return, stratVal: data.strategy_metrics.total_return, format: "pct", higherIsBetter: true, note: "Raw profit over the period" },
+                  { label: "Annual Return", icon: "📅", marketVal: data.market.annualized_return, stratVal: data.strategy_metrics.annualized_return, format: "pct", higherIsBetter: true, note: "Annualized compounded return" },
+                  { label: "Volatility", icon: "🎢", marketVal: data.market.volatility, stratVal: data.strategy_metrics.volatility, format: "pct", higherIsBetter: false, note: "Lower = smoother ride" },
+                  { label: "Sharpe Ratio", icon: "⚖️", marketVal: data.market.sharpe_ratio, stratVal: data.strategy_metrics.sharpe_ratio, format: "ratio", higherIsBetter: true, note: "Return per unit of risk" },
+                  { label: "Max Drawdown", icon: "🛡️", marketVal: data.market.max_drawdown, stratVal: data.strategy_metrics.max_drawdown, format: "pct", higherIsBetter: false, note: "Closer to 0% = better protection" },
+                ].map((m) => {
+                  const marketWins = m.higherIsBetter ? m.marketVal > m.stratVal : Math.abs(m.marketVal) < Math.abs(m.stratVal);
+                  const stratWins = !marketWins;
+                  return (
+                    <div key={m.label} style={{ background: "#0f172a", borderRadius: 12, padding: 16, border: "1px solid #334155" }}>
+                      <div style={{ fontSize: 20, marginBottom: 8 }}>{m.icon}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>{m.label}</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: marketWins ? "rgba(14,165,233,0.1)" : "transparent", borderRadius: 6, padding: "4px 8px" }}>
+                          <span style={{ fontSize: 11, color: "#475569" }}>Buy & Hold</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            {marketWins && <span style={{ fontSize: 10, color: "#0ea5e9" }}>✓</span>}
+                            <span style={{ fontSize: 14, fontWeight: 700, color: marketWins ? "#0ea5e9" : "#475569" }}>{fmt(m.marketVal, m.format)}</span>
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: stratWins ? "rgba(34,197,94,0.1)" : "transparent", borderRadius: 6, padding: "4px 8px" }}>
+                          <span style={{ fontSize: 11, color: "#475569" }}>Strategy</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            {stratWins && <span style={{ fontSize: 10, color: "#22c55e" }}>✓</span>}
+                            <span style={{ fontSize: 14, fontWeight: 700, color: stratWins ? "#22c55e" : "#475569" }}>{fmt(m.stratVal, m.format)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 11, color: "#334155", lineHeight: 1.4 }}>{m.note}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: 16, background: "linear-gradient(135deg, rgba(14,165,233,0.15) 0%, rgba(14,165,233,0.05) 100%)", borderRadius: 14, padding: 24, border: "1px solid rgba(14,165,233,0.3)" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+                  <div style={{ fontSize: 32, flexShrink: 0 }}>🧠</div>
+                  <div>
+                    <h4 style={{ color: "#fff", fontWeight: 800, fontSize: 18, margin: "0 0 8px" }}>There is no single winner in investing.</h4>
+                    <p style={{ color: "#94a3b8", fontSize: 15, lineHeight: 1.8, margin: 0 }}>
+                      Buy & hold often earns more raw return in bull markets. But the strategy typically wins on <strong style={{ color: "#0ea5e9" }}>drawdown</strong> and <strong style={{ color: "#0ea5e9" }}>volatility</strong> — meaning a smoother, less stressful experience with smaller losses during crashes. Professional investors and quant funds often prioritize risk-adjusted returns over maximizing raw profit. <strong style={{ color: "#fff" }}>The "best" strategy depends entirely on what you care about most.</strong>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-            {/* Chart — full width, large */}
-            <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: 36, marginBottom: 28 }}>
+            {/* Chart */}
+            <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: isMobile ? 20 : 36, marginBottom: 28 }}>
               <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, gap: isMobile ? 12 : 0 }}>
                 <div>
                   <h3 style={{ fontWeight: 800, color: "#fff", marginBottom: 6, fontSize: 22 }}>Growth of $1 Invested</h3>
@@ -428,11 +460,11 @@ function Backtest() {
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ width: 16, height: 3, background: "#fff", borderRadius: 2 }}></div>
-                    <span style={{ fontSize: 14, color: "#64748b", fontWeight: 600 }}>MA Strategy</span>
+                    <span style={{ fontSize: 14, color: "#64748b", fontWeight: 600 }}>{strategyName}</span>
                   </div>
                 </div>
               </div>
-              <ResponsiveContainer width="100%" height={400}>
+              <ResponsiveContainer width="100%" height={isMobile ? 250 : 400}>
                 <LineChart data={data.chart_data}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                   <XAxis dataKey="date" tick={{ fontSize: 12, fill: "#475569" }} tickFormatter={(d) => d.slice(5)} />
@@ -440,7 +472,7 @@ function Backtest() {
                   <Tooltip
                     contentStyle={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 10 }}
                     labelStyle={{ color: "#94a3b8", fontSize: 13 }}
-                    formatter={(value, name) => [`$${value.toFixed(4)}`, name === "market" ? "Buy & Hold" : "MA Strategy"]}
+                    formatter={(value, name) => [`$${value.toFixed(4)}`, name === "market" ? "Buy & Hold" : strategyName]}
                     labelFormatter={(label) => `Date: ${label}`}
                   />
                   <Line type="monotone" dataKey="market" stroke="#0ea5e9" dot={false} strokeWidth={3} />
@@ -450,108 +482,95 @@ function Backtest() {
             </div>
 
             {/* Metric Tabs */}
-            {data.strategy_metrics && <MetricTabs data={data} fmt={fmt} />}
+            <MetricTabs data={data} fmt={fmt} />
 
             {/* Key Takeaway */}
-            {data.strategy_metrics && (
-              <div style={{ marginTop: 20 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-                  <div style={{ width: 4, height: 32, background: "#0ea5e9", borderRadius: 2 }}></div>
-                  <h3 style={{ color: "#fff", fontWeight: 800, fontSize: 24, margin: 0, letterSpacing: -0.5 }}>Key Takeaway</h3>
-                  <span style={{ fontSize: 13, color: "#475569", fontWeight: 500 }}>What this backtest is telling you</span>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr", gap: 16, marginBottom: 16 }}>
-                  {/* Main insight - big card */}
-                  <div style={{ background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)", border: "1px solid #0ea5e9", borderRadius: 20, padding: 32, position: "relative", overflow: "hidden" }}>
-                    <div style={{ position: "absolute", top: -20, right: -20, fontSize: 120, opacity: 0.05 }}>
-                      {data.strategy_metrics.total_return > data.market.total_return ? "🏆" : "📈"}
-                    </div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#0ea5e9", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>What happened</div>
-                    <p style={{ color: "#e2e8f0", fontSize: 17, lineHeight: 1.9, margin: 0, position: "relative", zIndex: 1 }}>
-                      {data.strategy_metrics.total_return > data.market.total_return
-                        ? `The ${data.strategy === "rsi" ? "RSI" : "MA Crossover"} strategy outperformed buy & hold by `
-                        : `Buy & hold outperformed the ${data.strategy === "rsi" ? "RSI" : "MA Crossover"} strategy by `
-                      }
-                      <strong style={{ color: "#0ea5e9", fontSize: 20 }}>
-                        {Math.abs((data.strategy_metrics.total_return - data.market.total_return) * 100).toFixed(2)}%
-                      </strong>
-                      {data.strategy_metrics.total_return > data.market.total_return
-                        ? ". The strategy's signals successfully identified favorable entry and exit points, protecting capital during downturns and staying invested during uptrends."
-                        : ". The stock's consistent upward trend meant any time spent in cash cost returns. This is the most common outcome in strong bull markets — the strategy works best in volatile or choppy conditions."
-                      }
-                    </p>
+            <div style={{ marginTop: 20 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+                <div style={{ width: 4, height: 32, background: "#0ea5e9", borderRadius: 2 }}></div>
+                <h3 style={{ color: "#fff", fontWeight: 800, fontSize: 24, margin: 0, letterSpacing: -0.5 }}>Key Takeaway</h3>
+                <span style={{ fontSize: 13, color: "#475569", fontWeight: 500 }}>What this backtest is telling you</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr", gap: 16, marginBottom: 16 }}>
+                <div style={{ background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)", border: "1px solid #0ea5e9", borderRadius: 20, padding: 32, position: "relative", overflow: "hidden" }}>
+                  <div style={{ position: "absolute", top: -20, right: -20, fontSize: 120, opacity: 0.05 }}>
+                    {data.strategy_metrics.total_return > data.market.total_return ? "🏆" : "📈"}
                   </div>
-
-                  {/* Risk card */}
-                  <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: 28, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>Risk comparison</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                      <div>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                          <span style={{ fontSize: 13, color: "#64748b" }}>Buy & Hold volatility</span>
-                          <span style={{ fontSize: 15, fontWeight: 700, color: "#0ea5e9" }}>{fmt(data.market.volatility, "pct")}</span>
-                        </div>
-                        <div style={{ height: 6, background: "#0f172a", borderRadius: 3 }}>
-                          <div style={{ height: 6, background: "#0ea5e9", borderRadius: 3, width: `${Math.min(data.market.volatility * 200, 100)}%` }}></div>
-                        </div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#0ea5e9", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>What happened</div>
+                  <p style={{ color: "#e2e8f0", fontSize: 17, lineHeight: 1.9, margin: 0, position: "relative", zIndex: 1 }}>
+                    {data.strategy_metrics.total_return > data.market.total_return
+                      ? `${strategyName} outperformed buy & hold by `
+                      : `Buy & hold outperformed ${strategyName} by `
+                    }
+                    <strong style={{ color: "#0ea5e9", fontSize: 20 }}>
+                      {Math.abs((data.strategy_metrics.total_return - data.market.total_return) * 100).toFixed(2)}%
+                    </strong>
+                    {data.strategy_metrics.total_return > data.market.total_return
+                      ? ". The strategy's signals successfully identified favorable entry and exit points, protecting capital during downturns and staying invested during uptrends."
+                      : ". The stock's consistent upward trend meant any time spent in cash cost returns. This is the most common outcome in strong bull markets."
+                    }
+                  </p>
+                </div>
+                <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: 28, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>Risk comparison</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                        <span style={{ fontSize: 13, color: "#64748b" }}>Buy & Hold volatility</span>
+                        <span style={{ fontSize: 15, fontWeight: 700, color: "#0ea5e9" }}>{fmt(data.market.volatility, "pct")}</span>
                       </div>
-                      <div>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                          <span style={{ fontSize: 13, color: "#64748b" }}>Strategy volatility</span>
-                          <span style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{fmt(data.strategy_metrics.volatility, "pct")}</span>
-                        </div>
-                        <div style={{ height: 6, background: "#0f172a", borderRadius: 3 }}>
-                          <div style={{ height: 6, background: "#fff", borderRadius: 3, width: `${Math.min(data.strategy_metrics.volatility * 200, 100)}%` }}></div>
-                        </div>
+                      <div style={{ height: 6, background: "#0f172a", borderRadius: 3 }}>
+                        <div style={{ height: 6, background: "#0ea5e9", borderRadius: 3, width: `${Math.min(data.market.volatility * 200, 100)}%` }}></div>
                       </div>
                     </div>
-                    <p style={{ color: "#475569", fontSize: 13, lineHeight: 1.6, margin: "16px 0 0" }}>
-                      {data.strategy_metrics.volatility < data.market.volatility
-                        ? "✓ The strategy had a smoother ride — less stressful to hold through."
-                        : "The strategy had higher volatility — a bumpier ride than buy & hold."
-                      }
-                    </p>
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                        <span style={{ fontSize: 13, color: "#64748b" }}>Strategy volatility</span>
+                        <span style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{fmt(data.strategy_metrics.volatility, "pct")}</span>
+                      </div>
+                      <div style={{ height: 6, background: "#0f172a", borderRadius: 3 }}>
+                        <div style={{ height: 6, background: "#fff", borderRadius: 3, width: `${Math.min(data.strategy_metrics.volatility * 200, 100)}%` }}></div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: 16 }}>
-                  {/* Learn card */}
-                  <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: 28 }}>
-                    <div style={{ fontSize: 32, marginBottom: 12 }}>🧠</div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>What to learn</div>
-                    <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>
-                      No strategy wins in all conditions. The best quant traders look for strategies with strong <strong style={{ color: "#fff" }}>risk-adjusted returns</strong> across many market environments — not strategies that always maximize profit.
-                    </p>
-                  </div>
-
-                  {/* Sharpe card */}
-                  <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: 28 }}>
-                    <div style={{ fontSize: 32, marginBottom: 12 }}>⚖️</div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Risk efficiency</div>
-                    <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>
-                      {data.strategy_metrics.sharpe_ratio > data.market.sharpe_ratio
-                        ? <span>The strategy's Sharpe of <strong style={{ color: "#22c55e" }}>{fmt(data.strategy_metrics.sharpe_ratio, "ratio")}</strong> beats the market's <strong style={{ color: "#fff" }}>{fmt(data.market.sharpe_ratio, "ratio")}</strong> — meaning it generated more return per unit of risk. This is the metric professional quant funds care about most.</span>
-                        : <span>The market's Sharpe of <strong style={{ color: "#0ea5e9" }}>{fmt(data.market.sharpe_ratio, "ratio")}</strong> beats the strategy's <strong style={{ color: "#fff" }}>{fmt(data.strategy_metrics.sharpe_ratio, "ratio")}</strong> — buy & hold was more risk-efficient this period. But the strategy's lower drawdown may make it easier to hold through turbulence.</span>
-                      }
-                    </p>
-                  </div>
-
-                  {/* Try next card */}
-                  <div style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%)", borderRadius: 20, padding: 28 }}>
-                    <div style={{ fontSize: 32, marginBottom: 12 }}>🚀</div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Try next</div>
-                    <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 14, lineHeight: 1.8, margin: 0 }}>
-                      {data.strategy === "rsi"
-                        ? "Switch to MA Crossover on the same ticker. Also try a volatile stock like TSLA or extend to 3 or 5 years to see how both strategies perform across full market cycles."
-                        : "Switch to RSI strategy to compare a mean-reversion approach. Try TSLA for high volatility or SPY for broad market exposure across different time periods."
-                      }
-                    </p>
-                  </div>
+                  <p style={{ color: "#475569", fontSize: 13, lineHeight: 1.6, margin: "16px 0 0" }}>
+                    {data.strategy_metrics.volatility < data.market.volatility
+                      ? "✓ The strategy had a smoother ride — less stressful to hold through."
+                      : "The strategy had higher volatility than buy & hold this period."
+                    }
+                  </p>
                 </div>
               </div>
-            )}
-
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: 16 }}>
+                <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: 28 }}>
+                  <div style={{ fontSize: 32, marginBottom: 12 }}>🧠</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>What to learn</div>
+                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>No strategy wins in all conditions. The best quant traders look for strategies with strong <strong style={{ color: "#fff" }}>risk-adjusted returns</strong> across many market environments — not strategies that always maximize profit.</p>
+                </div>
+                <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: 28 }}>
+                  <div style={{ fontSize: 32, marginBottom: 12 }}>⚖️</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Risk efficiency</div>
+                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>
+                    {data.strategy_metrics.sharpe_ratio > data.market.sharpe_ratio
+                      ? <span>The strategy's Sharpe of <strong style={{ color: "#22c55e" }}>{fmt(data.strategy_metrics.sharpe_ratio, "ratio")}</strong> beats the market's <strong style={{ color: "#fff" }}>{fmt(data.market.sharpe_ratio, "ratio")}</strong> — more return per unit of risk. This is the metric professional quant funds care about most.</span>
+                      : <span>The market's Sharpe of <strong style={{ color: "#0ea5e9" }}>{fmt(data.market.sharpe_ratio, "ratio")}</strong> beats the strategy's <strong style={{ color: "#fff" }}>{fmt(data.strategy_metrics.sharpe_ratio, "ratio")}</strong> — buy & hold was more risk-efficient this period.</span>
+                    }
+                  </p>
+                </div>
+                <div style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%)", borderRadius: 20, padding: 28 }}>
+                  <div style={{ fontSize: 32, marginBottom: 12 }}>🚀</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Try next</div>
+                  <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 14, lineHeight: 1.8, margin: 0 }}>
+                    {strategy === "bollinger"
+                      ? "Try RSI or MA Crossover on the same ticker. Also test on a volatile stock like TSLA or extend to 3 or 5 years to see how Bollinger Bands perform across full market cycles."
+                      : strategy === "rsi"
+                      ? "Switch to MA Crossover to compare a trend-following approach. Try TSLA for high volatility or SPY for broad market exposure across different time periods."
+                      : "Switch to RSI or Bollinger Bands to compare mean-reversion approaches. Try TSLA for high volatility or extend to 3 or 5 years to see full market cycles."
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

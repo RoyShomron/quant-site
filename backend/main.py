@@ -10,8 +10,15 @@ cache = {}
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
-        yf.download("SPY", period="1y", auto_adjust=True)
-        print("Warmup complete")
+        import threading
+        def warm():
+            for ticker in ["SPY", "AAPL", "TSLA", "NVDA", "AMZN", "MSFT", "GOOGL"]:
+                try:
+                    yf.download(ticker, period="1y", auto_adjust=True)
+                except:
+                    pass
+            print("Warmup complete")
+        threading.Thread(target=warm, daemon=True).start()
     except:
         pass
     yield
@@ -97,6 +104,29 @@ def run_backtest(ticker: str = "SPY", strategy: str = "ma_crossover", timeframe:
             signals.append(position)
         df["Signal"] = signals
         df["Position"] = df["Signal"].shift(1)
+
+    elif strategy == "bollinger":
+        df["MA20"] = df["Close"].rolling(window=20).mean()
+        df["STD20"] = df["Close"].rolling(window=20).std()
+        df["UpperBand"] = df["MA20"] + (2 * df["STD20"])
+        df["LowerBand"] = df["MA20"] - (2 * df["STD20"])
+        position = 0
+        signals = []
+        for i in range(len(df)):
+            if pd.isna(df["MA20"].iloc[i]):
+                signals.append(0)
+                continue
+            price = float(df["Close"].iloc[i])
+            lower = float(df["LowerBand"].iloc[i])
+            upper = float(df["UpperBand"].iloc[i])
+            if price < lower:
+                position = 1
+            elif price > upper:
+                position = 0
+            signals.append(position)
+        df["Signal"] = signals
+        df["Position"] = df["Signal"].shift(1)
+
     else:
         df["MA20"] = df["Close"].rolling(window=20).mean()
         df["MA50"] = df["Close"].rolling(window=50).mean()
