@@ -71,11 +71,16 @@ function Home() {
           <span style={{ color: "#0ea5e9", fontSize: 42, fontFamily: "Georgia, serif", verticalAlign: "bottom", lineHeight: 1 }}>Q</span>
           <span style={{ color: "#0f172a" }}>uantWorld</span>
         </span>
-        <div style={{ display: "flex", gap: isMobile ? 12 : 40, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: isMobile ? 12 : 32, alignItems: "center" }}>
           {!isMobile && <span onClick={() => document.getElementById("features").scrollIntoView({ behavior: "smooth" })} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>Features</span>}
           {!isMobile && <span onClick={() => document.getElementById("howitworks").scrollIntoView({ behavior: "smooth" })} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>How it works</span>}
-          <button onClick={() => navigate("/backtest")} style={{ padding: "9px 24px", background: "#0ea5e9", color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-            {isMobile ? "Launch →" : "Launch App →"}
+          {!isMobile && (
+            <button onClick={() => navigate("/backtest")} style={{ padding: "9px 20px", background: "transparent", color: "#0ea5e9", border: "1.5px solid #0ea5e9", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+              Backtest
+            </button>
+          )}
+          <button onClick={() => navigate("/learn")} style={{ padding: "9px 24px", background: "#0ea5e9", color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(14,165,233,0.3)" }}>
+            {isMobile ? "Learn →" : "Start Learning →"}
           </button>
         </div>
       </nav>
@@ -116,15 +121,15 @@ function Home() {
             Pick any stock. Pick a strategy. See exactly how it would have performed — with plain English explanations of every single number.
           </p>
           <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-            <button onClick={() => navigate("/backtest")} style={{ padding: "16px 40px", background: "#0ea5e9", color: "#fff", border: "none", borderRadius: 12, fontSize: 17, fontWeight: 700, cursor: "pointer", transition: "all 0.2s", boxShadow: "0 4px 24px rgba(14,165,233,0.3)" }}
+            <button onClick={() => navigate("/learn")} style={{ padding: "16px 40px", background: "#0ea5e9", color: "#fff", border: "none", borderRadius: 12, fontSize: 17, fontWeight: 700, cursor: "pointer", transition: "all 0.2s", boxShadow: "0 4px 24px rgba(14,165,233,0.3)" }}
               onMouseEnter={e => e.target.style.background = "#0284c7"}
               onMouseLeave={e => e.target.style.background = "#0ea5e9"}>
-              Start Backtesting →
+              Start Learning →
             </button>
-            <button onClick={() => document.getElementById("howitworks").scrollIntoView({ behavior: "smooth" })} style={{ padding: "16px 40px", background: "#fff", color: "#0f172a", border: "1.5px solid #e0f2fe", borderRadius: 12, fontSize: 17, fontWeight: 700, cursor: "pointer", transition: "all 0.2s" }}
+            <button onClick={() => navigate("/backtest")} style={{ padding: "16px 40px", background: "#fff", color: "#0f172a", border: "1.5px solid #e0f2fe", borderRadius: 12, fontSize: 17, fontWeight: 700, cursor: "pointer", transition: "all 0.2s" }}
               onMouseEnter={e => e.target.style.borderColor = "#0ea5e9"}
               onMouseLeave={e => e.target.style.borderColor = "#e0f2fe"}>
-              See how it works
+              Launch Backtester →
             </button>
           </div>
         </div>
@@ -398,10 +403,10 @@ function Home() {
       <section className="fade-in" style={{ padding: isMobile ? "60px 20px" : "100px 48px", background: "#0ea5e9", textAlign: "center" }}>
         <h2 style={{ fontSize: 48, fontWeight: 800, color: "#fff", letterSpacing: -1.5, marginBottom: 16 }}>Ready to see how strategies really perform?</h2>
         <p style={{ fontSize: 20, color: "rgba(255,255,255,0.8)", marginBottom: 40, maxWidth: 480, margin: "0 auto 40px" }}>Free forever. No signup. Just results.</p>
-        <button onClick={() => navigate("/backtest")} style={{ padding: "18px 48px", background: "#fff", color: "#0ea5e9", border: "none", borderRadius: 12, fontSize: 18, fontWeight: 800, cursor: "pointer", transition: "all 0.2s" }}
+        <button onClick={() => navigate("/learn")} style={{ padding: "18px 48px", background: "#fff", color: "#0ea5e9", border: "none", borderRadius: 12, fontSize: 18, fontWeight: 800, cursor: "pointer", transition: "all 0.2s" }}
           onMouseEnter={e => e.target.style.transform = "scale(1.04)"}
           onMouseLeave={e => e.target.style.transform = "scale(1)"}>
-          Launch QuantWorld →
+          Start Learning for Free →
         </button>
       </section>
 

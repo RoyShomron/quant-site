@@ -204,6 +204,7 @@ function Backtest() {
         </span>
         <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
           <span onClick={() => navigate("/")} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>Home</span>
+          <span onClick={() => navigate("/learn")} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>Learn</span>
           <span style={{ color: "#0ea5e9", fontSize: 14, fontWeight: 600 }}>Backtest</span>
         </div>
       </nav>
