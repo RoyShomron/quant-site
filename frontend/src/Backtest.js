@@ -149,8 +149,8 @@ function MetricTabs({ data, fmt }) {
 function Backtest() {
   const navigate = useNavigate();
   const [ticker, setTicker] = useState("AAPL");
-  const [strategy, setStrategy] = useState("ma_crossover");
-  const [timeframe, setTimeframe] = useState("1y");
+  const [strategy, setStrategy] = useState("rsi");
+  const [timeframe, setTimeframe] = useState("3y");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
