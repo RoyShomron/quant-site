@@ -221,8 +221,8 @@ function Backtest() {
       </div>
 
       {/* Controls Bar — always visible at top */}
-      <div style={{ borderBottom: "1px solid #1e293b", padding: "20px 48px", background: "#0f172a" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", gap: 16, alignItems: "flex-end", flexWrap: "wrap", flexDirection: isMobile ? "column" : "row" }}>
+      <div style={{ borderBottom: "1px solid #1e293b", padding: isMobile ? "20px 20px" : "20px 48px", background: "#0f172a" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", gap: 16, alignItems: isMobile ? "flex-start" : "flex-end", flexWrap: "wrap", flexDirection: isMobile ? "column" : "row" }}>
           <div>
             <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>Ticker Symbol</label>
             <input
@@ -230,7 +230,7 @@ function Backtest() {
               onChange={(e) => setTicker(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === "Enter" && runBacktest()}
               placeholder="e.g. AAPL"
-              style={{ padding: "12px 20px", fontSize: 18, fontWeight: 700, background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, outline: "none", color: "#fff", width: 180 }}
+              style={{ padding: "12px 20px", fontSize: 18, fontWeight: 700, background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, outline: "none", color: "#fff", width: isMobile ? "100%" : 180 }}
             />
           </div>
           <div>
@@ -238,7 +238,7 @@ function Backtest() {
             <select
               value={strategy}
               onChange={(e) => setStrategy(e.target.value)}
-              style={{ padding: "12px 20px", background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, color: "#fff", fontSize: 15, minWidth: 260, outline: "none", cursor: "pointer" }}
+              style={{ padding: "12px 20px", background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, color: "#fff", fontSize: 15, width: isMobile ? "100%" : "auto", minWidth: isMobile ? "unset" : 260, outline: "none", cursor: "pointer" }}
             >
               <option value="ma_crossover">MA Crossover (20/50)</option>
               <option value="rsi">RSI Strategy (30/70)</option>
@@ -249,7 +249,7 @@ function Backtest() {
             <select
               value={timeframe}
               onChange={(e) => setTimeframe(e.target.value)}
-              style={{ padding: "12px 20px", background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, color: "#fff", fontSize: 15, minWidth: 180, outline: "none", cursor: "pointer" }}
+              style={{ padding: "12px 20px", background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, color: "#fff", fontSize: 15, width: isMobile ? "100%" : "auto", minWidth: isMobile ? "unset" : 180, outline: "none", cursor: "pointer" }}
             >
               <option value="1y">1 Year</option>
               <option value="3y">3 Years</option>
@@ -258,7 +258,7 @@ function Backtest() {
           </div>
           <button
             onClick={runBacktest}
-            style={{ padding: "12px 36px", fontSize: 16, fontWeight: 700, background: loading ? "#334155" : "#0ea5e9", color: loading ? "#64748b" : "#fff", border: "none", borderRadius: 10, cursor: loading ? "not-allowed" : "pointer", transition: "all 0.2s" }}
+            style={{ padding: "12px 36px", fontSize: 16, fontWeight: 700, background: loading ? "#334155" : "#0ea5e9", color: loading ? "#64748b" : "#fff", border: "none", borderRadius: 10, cursor: loading ? "not-allowed" : "pointer", transition: "all 0.2s", width: isMobile ? "100%" : "auto" }}
           >
             {loading ? "Running..." : "Run Backtest →"}
           </button>
