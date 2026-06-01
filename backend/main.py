@@ -68,8 +68,8 @@ def get_period_string(timeframe: str) -> str:
     return "1y"
 
 @app.get("/backtest")
-def run_backtest(ticker: str = "SPY", strategy: str = "ma_crossover", timeframe: str = "1y"):
-    cache_key = f"{ticker}_{strategy}_{timeframe}"
+def run_backtest(ticker: str = "SPY", strategy: str = "ma_crossover", timeframe: str = "1y", strategy2: str = "none"):
+    cache_key = f"{ticker}_{strategy}_{timeframe}_{strategy2}"
     now = datetime.now()
     if cache_key in cache and now - cache[cache_key]["timestamp"] < timedelta(minutes=30):
         return cache[cache_key]["data"]
@@ -171,6 +171,74 @@ def run_backtest(ticker: str = "SPY", strategy: str = "ma_crossover", timeframe:
         },
         "chart_data": chart_data,
     }
+
+    cache[cache_key] = {"data": result, "timestamp": now}
+    if strategy2 != "none":
+        df2 = df.copy()
+        if strategy2 == "rsi":
+            df2["RSI"] = compute_rsi(df2["Close"])
+            position2 = 0
+            signals2 = []
+            for i in range(len(df2)):
+                rsi_val = df2["RSI"].iloc[i]
+                if pd.isna(rsi_val):
+                    signals2.append(0)
+                    continue
+                if rsi_val < 30:
+                    position2 = 1
+                elif rsi_val > 70:
+                    position2 = 0
+                signals2.append(position2)
+            df2["Signal2"] = signals2
+            df2["Position2"] = pd.Series(signals2).shift(1).values
+        elif strategy2 == "bollinger":
+            df2["MA20"] = df2["Close"].rolling(window=20).mean()
+            df2["STD20"] = df2["Close"].rolling(window=20).std()
+            df2["UpperBand"] = df2["MA20"] + (2 * df2["STD20"])
+            df2["LowerBand"] = df2["MA20"] - (2 * df2["STD20"])
+            position2 = 0
+            signals2 = []
+            for i in range(len(df2)):
+                if pd.isna(df2["MA20"].iloc[i]):
+                    signals2.append(0)
+                    continue
+                price = float(df2["Close"].iloc[i])
+                lower = float(df2["LowerBand"].iloc[i])
+                upper = float(df2["UpperBand"].iloc[i])
+                if price < lower:
+                    position2 = 1
+                elif price > upper:
+                    position2 = 0
+                signals2.append(position2)
+            df2["Signal2"] = signals2
+            df2["Position2"] = pd.Series(signals2).shift(1).values
+        else:
+            df2["MA20"] = df2["Close"].rolling(window=20).mean()
+            df2["MA50"] = df2["Close"].rolling(window=50).mean()
+            df2["Signal2"] = (df2["MA20"] > df2["MA50"]).astype(int)
+            df2["Position2"] = df2["Signal2"].shift(1)
+
+        df2["StrategyReturn2"] = df2["Return"] * df2["Position2"]
+        df2["StrategyCumulative2"] = (1 + df2["StrategyReturn2"]).cumprod()
+        df2 = df2.dropna()
+
+        for item in result["chart_data"]:
+            date = item["date"]
+            matching = df2[df2.index.strftime("%Y-%m-%d") == date]
+            if not matching.empty:
+                val = float(matching["StrategyCumulative2"].iloc[0])
+                item["strategy2"] = round(val, 4)
+            else:
+                item["strategy2"] = None
+
+        result["strategy2_metrics"] = {
+            "total_return": total_return(df2["StrategyCumulative2"]),
+            "annualized_return": annualized_return(df2["StrategyReturn2"]),
+            "volatility": annualized_vol(df2["StrategyReturn2"]),
+            "sharpe_ratio": sharpe_ratio(df2["StrategyReturn2"]),
+            "max_drawdown": max_drawdown(df2["StrategyCumulative2"]),
+        }
+        result["strategy2"] = strategy2
 
     cache[cache_key] = {"data": result, "timestamp": now}
     return result
