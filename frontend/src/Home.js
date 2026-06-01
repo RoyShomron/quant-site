@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useWindowSize } from "./useWindowSize";
 
 const TICKERS = ["AAPL +1.2%", "TSLA -0.8%", "SPY +0.5%", "NVDA +3.1%", "MSFT +0.9%", "AMZN -0.3%", "GOOGL +1.7%", "UBER +0.8%", "JPM +0.6%", "V +0.4%", "NFLX +1.9%"];
 
@@ -39,6 +40,7 @@ function FAQItem({ question, answer }) {
 function Home() {
   const navigate = useNavigate();
   const observerRef = useRef(null);
+  const { isMobile } = useWindowSize();
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver((entries) => {
@@ -64,16 +66,16 @@ function Home() {
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff", color: "#0f172a", overflowX: "hidden" }}>
 
       {/* Navbar */}
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", borderBottom: "1px solid #e0f2fe", padding: "0 48px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", borderBottom: "1px solid #e0f2fe", padding: isMobile ? "0 20px" : "0 48px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span style={{ fontSize: 24, fontWeight: 900, letterSpacing: -1 }}>
           <span style={{ color: "#0ea5e9", fontSize: 42, fontFamily: "Georgia, serif", verticalAlign: "bottom", lineHeight: 1 }}>Q</span>
           <span style={{ color: "#0f172a" }}>uantWorld</span>
         </span>
-        <div style={{ display: "flex", gap: 40, alignItems: "center" }}>
-          <span onClick={() => document.getElementById("features").scrollIntoView({ behavior: "smooth" })} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>Features</span>
-          <span onClick={() => document.getElementById("howitworks").scrollIntoView({ behavior: "smooth" })} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>How it works</span>
+        <div style={{ display: "flex", gap: isMobile ? 12 : 40, alignItems: "center" }}>
+          {!isMobile && <span onClick={() => document.getElementById("features").scrollIntoView({ behavior: "smooth" })} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>Features</span>}
+          {!isMobile && <span onClick={() => document.getElementById("howitworks").scrollIntoView({ behavior: "smooth" })} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>How it works</span>}
           <button onClick={() => navigate("/backtest")} style={{ padding: "9px 24px", background: "#0ea5e9", color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-            Launch App →
+            {isMobile ? "Launch →" : "Launch App →"}
           </button>
         </div>
       </nav>
@@ -106,11 +108,11 @@ function Home() {
           <div style={{ display: "inline-block", background: "#e0f2fe", color: "#0369a1", fontSize: 13, fontWeight: 700, padding: "6px 18px", borderRadius: 100, marginBottom: 28, letterSpacing: 0.3 }}>
             Free · No signup required · Beginner friendly
           </div>
-          <h1 style={{ fontSize: 64, fontWeight: 800, lineHeight: 1.1, marginBottom: 24, letterSpacing: -2, maxWidth: 720 }}>
+          <h1 style={{ fontSize: isMobile ? 36 : 64, fontWeight: 800, lineHeight: 1.1, marginBottom: 24, letterSpacing: isMobile ? -1 : -2, maxWidth: 720 }}>
             Learn trading strategies
             <span style={{ color: "#0ea5e9" }}> that actually work</span>
           </h1>
-          <p style={{ fontSize: 20, color: "#64748b", lineHeight: 1.6, maxWidth: 540, margin: "0 auto 48px" }}>
+          <p style={{ fontSize: isMobile ? 16 : 20, color: "#64748b", lineHeight: 1.6, maxWidth: 540, margin: "0 auto 48px", padding: isMobile ? "0 16px" : 0 }}>
             Pick any stock. Pick a strategy. See exactly how it would have performed — with plain English explanations of every single number.
           </p>
           <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
@@ -130,7 +132,7 @@ function Home() {
 
       {/* Stats Bar */}
       <section style={{ background: "#0f172a", padding: "28px 48px" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 32 }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 16 : 32 }}>
           {[
             { number: "10,000+", label: "Tickers supported" },
             { number: "Real data", label: "No simulations" },
@@ -146,13 +148,13 @@ function Home() {
       </section>
 
       {/* Features */}
-      <section id="features" style={{ padding: "100px 48px", background: "#fff" }}>
+      <section id="features" style={{ padding: isMobile ? "60px 20px" : "100px 48px", background: "#fff" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="fade-in" style={{ textAlign: "center", marginBottom: 64 }}>
             <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Built for beginners.<br />Powerful enough for everyone.</h2>
             <p style={{ fontSize: 18, color: "#64748b", maxWidth: 500, margin: "0 auto" }}>No finance degree needed. No confusing terminology. Just clear, honest results.</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 28 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 28 }}>
             {[
               { icon: "📊", title: "Real market data", desc: "Every backtest uses actual historical price data — not simulations. See how strategies performed through real market conditions including crashes and rallies." },
               { icon: "🧠", title: "Plain English explanations", desc: "Every metric comes with a clear explanation of what it means and what your specific result tells you. No more Googling what Sharpe ratio means." },
@@ -171,14 +173,14 @@ function Home() {
       </section>
 
      {/* What is backtesting */}
-      <section style={{ padding: "100px 48px", background: "#fff", position: "relative", overflow: "hidden" }}>
+      <section style={{ padding: isMobile ? "60px 20px" : "100px 48px", background: "#fff", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", fontSize: 600, fontWeight: 900, color: "#0ea5e9", opacity: 0.1, fontFamily: "Georgia, serif", lineHeight: 1, pointerEvents: "none", userSelect: "none", zIndex: 0 }}>Q</div>
         <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 1 }}>
           <div className="fade-in" style={{ textAlign: "center", marginBottom: 64 }}>
             <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>What is backtesting?</h2>
             <p style={{ fontSize: 18, color: "#64748b", maxWidth: 540, margin: "0 auto" }}>The concept is simple — and it's how every professional trader evaluates a strategy before risking real money.</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "center" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 32 : 48, alignItems: "center" }}>
             <div className="fade-in">
               <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
                 {[
@@ -221,7 +223,7 @@ function Home() {
       </section>
 
       {/* How it works */}
-      <section id="howitworks" style={{ padding: "100px 48px", background: "#f0f9ff" }}>
+      <section id="howitworks" style={{ padding: isMobile ? "60px 20px" : "100px 48px", background: "#f0f9ff" }}>
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
           <div className="fade-in" style={{ textAlign: "center", marginBottom: 64 }}>
             <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>How it works</h2>
@@ -252,7 +254,7 @@ function Home() {
             <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Live market snapshot</h2>
             <p style={{ fontSize: 18, color: "#64748b", maxWidth: 500, margin: "0 auto" }}>Click any stock to instantly run a backtest on it.</p>
           </div>
-          <div className="fade-in" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
+          <div className="fade-in" style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 12 : 20 }}>
             {[
               { ticker: "SPY", name: "S&P 500 ETF", price: "$584.12", change: "+0.52%", up: true },
               { ticker: "AAPL", name: "Apple Inc.", price: "$211.45", change: "+1.23%", up: true },
@@ -286,7 +288,7 @@ function Home() {
      {/* About */}
       <section style={{ padding: "100px 48px", background: "#0f172a", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at center, rgba(14,165,233,0.08) 0%, transparent 70%)" }}></div>
-        <div className="fade-in" style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
+        <div className="fade-in" style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 40 : 80, alignItems: "center", textAlign: isMobile ? "center" : "left" }}>
           
           {/* Left — Queens logo */}
           <div style={{ textAlign: "center" }}>
@@ -393,7 +395,7 @@ function Home() {
       </section>
 
       {/* CTA */}
-      <section className="fade-in" style={{ padding: "100px 48px", background: "#0ea5e9", textAlign: "center" }}>
+      <section className="fade-in" style={{ padding: isMobile ? "60px 20px" : "100px 48px", background: "#0ea5e9", textAlign: "center" }}>
         <h2 style={{ fontSize: 48, fontWeight: 800, color: "#fff", letterSpacing: -1.5, marginBottom: 16 }}>Ready to see how strategies really perform?</h2>
         <p style={{ fontSize: 20, color: "rgba(255,255,255,0.8)", marginBottom: 40, maxWidth: 480, margin: "0 auto 40px" }}>Free forever. No signup. Just results.</p>
         <button onClick={() => navigate("/backtest")} style={{ padding: "18px 48px", background: "#fff", color: "#0ea5e9", border: "none", borderRadius: 12, fontSize: 18, fontWeight: 800, cursor: "pointer", transition: "all 0.2s" }}
@@ -404,7 +406,7 @@ function Home() {
       </section>
 
       {/* Footer */}
-      <footer style={{ padding: "32px 48px", background: "#0f172a", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <footer style={{ padding: isMobile ? "32px 20px" : "32px 48px", background: "#0f172a", display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: "center", gap: isMobile ? 12 : 0, textAlign: isMobile ? "center" : "left" }}>
         <span style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>QuantWorld</span>
         <span style={{ color: "#475569", fontSize: 13 }}>Built by Roy Shomron · Queen's University · 2026</span>
         <span style={{ color: "#475569", fontSize: 13 }}>For educational purposes only</span>
