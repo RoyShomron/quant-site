@@ -197,14 +197,14 @@ function ArticleIllustration({ id }) {
         <line x1="300" y1="40" x2="300" y2="240" stroke="#22c55e" strokeWidth="1" strokeDasharray="4,4" opacity="0.4"/>
         <circle cx="300" cy="165" r="10" fill="none" stroke="#22c55e" strokeWidth="2"/>
         <circle cx="300" cy="165" r="4" fill="#22c55e"/>
-        <text x="310" y="120" fill="#22c55e" fontSize="11" fontWeight="700">CROSSOVER</text>
-        <text x="310" y="134" fill="#22c55e" fontSize="10">MA20 crosses above MA50</text>
+        <text x="310" y="180" fill="#22c55e" fontSize="11" fontWeight="700">CROSSOVER</text>
+        <text x="310" y="194" fill="#22c55e" fontSize="10">MA20 crosses above MA50</text>
         <text x="150" y="50" textAnchor="middle" fill="#ef4444" fontSize="11" fontWeight="600">BEFORE</text>
         <text x="150" y="64" textAnchor="middle" fill="#64748b" fontSize="10">MA50 above MA20</text>
         <text x="150" y="76" textAnchor="middle" fill="#64748b" fontSize="10">(downtrend)</text>
-        <text x="500" y="50" textAnchor="middle" fill="#22c55e" fontSize="11" fontWeight="600">AFTER</text>
-        <text x="500" y="64" textAnchor="middle" fill="#64748b" fontSize="10">MA20 above MA50</text>
-        <text x="500" y="76" textAnchor="middle" fill="#64748b" fontSize="10">(uptrend — buy signal)</text>
+        <text x="450" y="50" textAnchor="middle" fill="#22c55e" fontSize="11" fontWeight="600">AFTER</text>
+        <text x="450" y="64" textAnchor="middle" fill="#64748b" fontSize="10">MA20 above MA50</text>
+        <text x="450" y="76" textAnchor="middle" fill="#64748b" fontSize="10">(uptrend — buy signal)</text>
         <line x1="80" y1="255" x2="110" y2="255" stroke="#0ea5e9" strokeWidth="2.5"/>
         <text x="116" y="259" fill="#0ea5e9" fontSize="12" fontWeight="600">MA20 (Fast)</text>
         <line x1="240" y1="255" x2="270" y2="255" stroke="#f59e0b" strokeWidth="2.5" strokeDasharray="6,3"/>

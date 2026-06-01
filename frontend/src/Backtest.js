@@ -481,9 +481,6 @@ function Backtest() {
               </ResponsiveContainer>
             </div>
 
-            {/* Metric Tabs */}
-            <MetricTabs data={data} fmt={fmt} />
-
             {/* Key Takeaway */}
             <div style={{ marginTop: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
