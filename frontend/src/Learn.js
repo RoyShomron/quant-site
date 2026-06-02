@@ -381,7 +381,7 @@ function Learn() {
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: isMobile ? "40px 20px" : "60px 48px" }}>
           <div style={{ marginBottom: 56 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(14,165,233,0.1)", border: "1px solid rgba(14,165,233,0.2)", borderRadius: 100, padding: "6px 16px", marginBottom: 20 }}>
-              <span style={{ fontSize: 13, color: "#0ea5e9", fontWeight: 600 }}>Free education</span>
+              <span style={{ fontSize: 13, color: "#0ea5e9", fontWeight: 600 }}>Free · Early Access</span>
             </div>
             <h1 style={{ fontSize: isMobile ? 36 : 56, fontWeight: 800, color: "#fff", letterSpacing: -2, marginBottom: 16, lineHeight: 1.1 }}>
               Learn quant finance.<br />

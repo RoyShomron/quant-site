@@ -73,7 +73,7 @@ function Home() {
         </span>
         <div style={{ display: "flex", gap: isMobile ? 12 : 32, alignItems: "center" }}>
           {!isMobile && <span onClick={() => document.getElementById("features").scrollIntoView({ behavior: "smooth" })} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>Features</span>}
-          {!isMobile && <span onClick={() => document.getElementById("howitworks").scrollIntoView({ behavior: "smooth" })} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>How it works</span>}
+          {!isMobile && <span onClick={() => document.getElementById("howitworks").scrollIntoView({ behavior: "smooth" })} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>How It Works</span>}
           {!isMobile && (
             <button onClick={() => navigate("/backtest")} style={{ padding: "9px 20px", background: "transparent", color: "#0ea5e9", border: "1.5px solid #0ea5e9", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
               Backtest
@@ -111,7 +111,7 @@ function Home() {
         </div>
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "inline-block", background: "#e0f2fe", color: "#0369a1", fontSize: 13, fontWeight: 700, padding: "6px 18px", borderRadius: 100, marginBottom: 28, letterSpacing: 0.3 }}>
-            Free · No signup required · Beginner friendly
+            Early Access · No Signup Required · Beginner Friendly
           </div>
           <h1 style={{ fontSize: isMobile ? 36 : 64, fontWeight: 800, lineHeight: 1.1, marginBottom: 24, letterSpacing: isMobile ? -1 : -2, maxWidth: 720 }}>
             Learn trading strategies
@@ -142,7 +142,7 @@ function Home() {
             { number: "10,000+", label: "Tickers supported" },
             { number: "Real data", label: "No simulations" },
             { number: "5+", label: "Strategies available" },
-            { number: "Free", label: "No signup required" },
+            { number: "Free", label: "During early access" },
           ].map((s, i) => (
             <div key={i} style={{ textAlign: "center" }}>
               <div style={{ fontSize: 28, fontWeight: 800, color: "#0ea5e9", marginBottom: 4 }}>{s.number}</div>
@@ -227,7 +227,7 @@ function Home() {
         </div>
       </section>
 
-      {/* How it works */}
+      {/* How it Works */}
       <section id="howitworks" style={{ padding: isMobile ? "60px 20px" : "100px 48px", background: "#f0f9ff" }}>
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
           <div className="fade-in" style={{ textAlign: "center", marginBottom: 64 }}>
@@ -348,7 +348,7 @@ function Home() {
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {[
-              { q: "Is this free?", a: "Yes, completely free. No signup, no credit card, no catch. QuantWorld is a passion project built to make quantitative finance accessible to everyone." },
+              { q: "Is this free?", a: "Yes, completely free during early access. No signup, no credit card required. QuantWorld is a passion project built to make quantitative finance accessible to everyone. As we add more advanced features like ML strategies, some may become premium — but the core tool will always be free." },
               { q: "What is a ticker symbol?", a: "A ticker is a short abbreviation that identifies a stock. For example, Apple is AAPL, Tesla is TSLA, and the S&P 500 index fund is SPY. You can find any company's ticker by Googling the company name followed by 'stock ticker'." },
               { q: "Can I lose real money here?", a: "No. QuantWorld is purely educational — you are not trading real money at any point. You're testing strategies against historical data to see how they would have performed. Nothing here is financial advice." },
               { q: "What's the difference between backtesting and real trading?", a: "Backtesting applies a strategy to past data to see how it would have performed historically. Real trading applies a strategy to live markets with real money. Past performance never guarantees future results — backtesting is a learning and research tool, not a crystal ball." },
@@ -409,7 +409,7 @@ function Home() {
       {/* CTA */}
       <section className="fade-in" style={{ padding: isMobile ? "60px 20px" : "100px 48px", background: "#0ea5e9", textAlign: "center" }}>
         <h2 style={{ fontSize: 48, fontWeight: 800, color: "#fff", letterSpacing: -1.5, marginBottom: 16 }}>Ready to see how strategies really perform?</h2>
-        <p style={{ fontSize: 20, color: "rgba(255,255,255,0.8)", marginBottom: 40, maxWidth: 480, margin: "0 auto 40px" }}>Free forever. No signup. Just results.</p>
+        <p style={{ fontSize: 20, color: "rgba(255,255,255,0.8)", marginBottom: 40, maxWidth: 480, margin: "0 auto 40px" }}>No signup. Just results.</p>
         <button onClick={() => navigate("/learn")} style={{ padding: "18px 48px", background: "#fff", color: "#0ea5e9", border: "none", borderRadius: 12, fontSize: 18, fontWeight: 800, cursor: "pointer", transition: "all 0.2s" }}
           onMouseEnter={e => e.target.style.transform = "scale(1.04)"}
           onMouseLeave={e => e.target.style.transform = "scale(1)"}>
