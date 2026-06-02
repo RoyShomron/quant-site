@@ -139,10 +139,10 @@ function Home() {
       <section style={{ background: "#0f172a", padding: "28px 48px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 16 : 32 }}>
           {[
-            { number: "10,000+", label: "Tickers supported" },
-            { number: "Real data", label: "No simulations" },
-            { number: "5+", label: "Strategies available" },
-            { number: "Free", label: "During early access" },
+            { number: "10,000+", label: "Tickers Supported" },
+            { number: "Real Data", label: "No Simulations" },
+            { number: "5+", label: "Strategies Available" },
+            { number: "Free", label: "During Early Access" },
           ].map((s, i) => (
             <div key={i} style={{ textAlign: "center" }}>
               <div style={{ fontSize: 28, fontWeight: 800, color: "#0ea5e9", marginBottom: 4 }}>{s.number}</div>
