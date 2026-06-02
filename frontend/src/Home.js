@@ -368,7 +368,7 @@ function Home() {
           <div style={{ display: "inline-block", background: "#e0f2fe", color: "#0369a1", fontSize: 13, fontWeight: 700, padding: "6px 18px", borderRadius: 100, marginBottom: 20 }}>Stay in the loop</div>
           <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: -1, marginBottom: 12, color: "#0f172a" }}>New strategies dropping soon</h2>
           <p style={{ fontSize: 16, color: "#64748b", lineHeight: 1.7, marginBottom: 32 }}>
-            RSI, Bollinger Bands, and ML-based strategies are coming. Drop your email and be the first to know.
+            ML-based strategies, an iOS app and more are coming. Drop your email and be the first to know.
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <input
