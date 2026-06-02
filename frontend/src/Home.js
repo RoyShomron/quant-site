@@ -156,7 +156,7 @@ function Home() {
       <section id="features" style={{ padding: isMobile ? "60px 20px" : "100px 48px", background: "#fff" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="fade-in" style={{ textAlign: "center", marginBottom: 64 }}>
-            <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Built For Beginners.<br />Powerful Enough for Everyone.</h2>
+            <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Built For Beginners.<br />Powerful Enough For Everyone.</h2>
             <p style={{ fontSize: 18, color: "#64748b", maxWidth: 500, margin: "0 auto" }}>No finance degree needed. No confusing terminology. Just clear, honest results.</p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 28 }}>
