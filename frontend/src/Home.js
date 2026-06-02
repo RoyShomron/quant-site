@@ -162,7 +162,7 @@ function Home() {
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 28 }}>
             {[
               { icon: "📊", title: "Real market data", desc: "Every backtest uses actual historical price data — not simulations. See how strategies performed through real market conditions including crashes and rallies." },
-              { icon: "🧠", title: "Plain English explanations", desc: "Every metric comes with a clear explanation of what it means and what your specific result tells you. No more Googling what Sharpe ratio means." },
+              { icon: "🧠", title: "Plain English explanations", desc: "Every metric comes with a clear explanation of what it means and what your specific result tells you. No more googling what Sharpe Ratio means." },
               { icon: "⚡", title: "Instant results", desc: "Type in any ticker, click run, and get a full analysis in seconds. Compare strategies side by side and see exactly where one outperforms the other." },
             ].map((f, i) => (
               <div key={i} className="fade-in" style={{ background: "#f8fafc", border: "1px solid #e0f2fe", borderRadius: 20, padding: 36, transition: "all 0.3s", cursor: "default" }}
