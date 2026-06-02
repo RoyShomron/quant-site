@@ -68,7 +68,7 @@ def get_period_string(timeframe: str) -> str:
     return "1y"
 
 @app.get("/backtest")
-def run_backtest(ticker: str = "SPY", strategy: str = "ma_crossover", timeframe: str = "1y", strategy2: str = "none"):
+def run_backtest(ticker: str = "AAPL", strategy: str = "ma_crossover", timeframe: str = "1y", strategy2: str = "none"):
     cache_key = f"{ticker}_{strategy}_{timeframe}_{strategy2}"
     now = datetime.now()
     if cache_key in cache and now - cache[cache_key]["timestamp"] < timedelta(minutes=30):

@@ -396,6 +396,20 @@ function Learn() {
               <ArticleCard key={article.id} article={article} onClick={() => setSelectedArticle(article)} />
             ))}
           </div>
+          <div style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(14,165,233,0.1) 100%)", border: "1px solid rgba(139,92,246,0.4)", borderRadius: 20, padding: 28, marginBottom: 20, display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 40 }}>🤖</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                <div style={{ background: "#8b5cf6", borderRadius: 6, padding: "3px 10px" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", textTransform: "uppercase", letterSpacing: "0.06em" }}>Coming Soon</span>
+                </div>
+              </div>
+              <h3 style={{ color: "#fff", fontWeight: 800, fontSize: 18, margin: "0 0 6px" }}>Machine Learning Strategies</h3>
+              <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
+                We're building ML-powered trading strategies — Logistic Regression, Random Forest, and LSTM Neural Networks. Learn how algorithms trained on historical data generate buy/sell signals, and test them against traditional strategies.
+              </p>
+            </div>
+          </div>
           <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: 36, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 20 }}>
             <div>
               <h3 style={{ color: "#fff", fontWeight: 800, fontSize: 20, marginBottom: 8 }}>Ready to put it into practice?</h3>

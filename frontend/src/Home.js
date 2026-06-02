@@ -378,9 +378,16 @@ function Home() {
               style={{ padding: "14px 20px", fontSize: 15, border: "1.5px solid #e0f2fe", borderRadius: 10, outline: "none", width: 280, color: "#0f172a" }}
             />
             <button
-              onClick={() => {
+              onClick={async () => {
                 const email = document.getElementById("email-input").value;
                 if (email && email.includes("@")) {
+                  try {
+                    await fetch("https://formspree.io/f/xaqkrqry", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ email }),
+                    });
+                  } catch (e) {}
                   document.getElementById("email-input").value = "";
                   document.getElementById("email-success").style.display = "block";
                   document.getElementById("email-btn").style.display = "none";

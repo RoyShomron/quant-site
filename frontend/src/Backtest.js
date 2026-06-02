@@ -16,7 +16,7 @@ function Backtest() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`https://quantworld-backend.onrender.com/backtest?ticker=SPY`).catch(() => {});
+    fetch(`https://quantworld-backend.onrender.com/backtest?ticker=AAPL`).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -39,7 +39,6 @@ function Backtest() {
       console.log("compareMode:", compareMode, "strategy2:", s2, "s2param:", s2param);
       const response = await fetch(`https://quantworld-backend.onrender.com/backtest?ticker=${t}&strategy=${s}&timeframe=${tf}&strategy2=${s2param}`);
       const result = await response.json();
-      console.log("API result:", result);
       setData(result);
     } catch (err) {
       setError("Something went wrong. Make sure the backend is running.");
@@ -102,9 +101,13 @@ function Backtest() {
           <div>
             <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>Strategy</label>
             <select value={strategy} onChange={(e) => setStrategy(e.target.value)} style={{ padding: "12px 20px", background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, color: "#fff", fontSize: 15, width: isMobile ? "100%" : "auto", minWidth: isMobile ? "unset" : 260, outline: "none", cursor: "pointer" }}>
-              <option value="ma_crossover">MA Crossover (20/50)</option>
-              <option value="rsi">RSI Strategy (30/70)</option>
-              <option value="bollinger">Bollinger Bands (20, 2σ)</option>
+              <option value="ma_crossover">〽️ MA Crossover (20/50)</option>
+              <option value="rsi">⚡ RSI Strategy (30/70)</option>
+              <option value="bollinger">🎯 Bollinger Bands (20, 2σ)</option>
+              <option disabled>── Coming Soon ──</option>
+              <option disabled>🤖 Logistic Regression (ML)</option>
+              <option disabled>🧠 Random Forest (ML)</option>
+              <option disabled>📡 LSTM Neural Network (ML)</option>
             </select>
           </div>
           <div>
@@ -129,9 +132,13 @@ function Backtest() {
             <div>
               <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>Strategy 2</label>
               <select value={strategy2} onChange={(e) => setStrategy2(e.target.value)} style={{ padding: "12px 20px", background: "#1e293b", border: "1.5px solid #0ea5e9", borderRadius: 10, color: "#0ea5e9", fontSize: 15, width: isMobile ? "100%" : "auto", minWidth: isMobile ? "unset" : 260, outline: "none", cursor: "pointer" }}>
-                <option value="ma_crossover">MA Crossover (20/50)</option>
-                <option value="rsi">RSI Strategy (30/70)</option>
-                <option value="bollinger">Bollinger Bands (20, 2σ)</option>
+                <option value="ma_crossover">〽️ MA Crossover (20/50)</option>
+                <option value="rsi">⚡ RSI Strategy (30/70)</option>
+                <option value="bollinger">🎯 Bollinger Bands (20, 2σ)</option>
+                <option disabled>── Coming Soon ──</option>
+                <option disabled>🤖 Logistic Regression (ML)</option>
+                <option disabled>🧠 Random Forest (ML)</option>
+                <option disabled>📡 LSTM Neural Network (ML)</option>
               </select>
             </div>
           )}
@@ -411,7 +418,12 @@ function Backtest() {
                   <Tooltip
                     contentStyle={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 10 }}
                     labelStyle={{ color: "#94a3b8", fontSize: 13 }}
-                    formatter={(value, name) => [`$${value.toFixed(4)}`, name === "market" ? "Buy & Hold" : strategyName]}
+                    formatter={(value, name) => {
+                      if (name === "market") return [`$${value.toFixed(4)}`, "Buy & Hold"];
+                      if (name === "strategy") return [`$${value.toFixed(4)}`, strategyName];
+                      if (name === "strategy2") return [`$${value.toFixed(4)}`, data.strategy2 === "rsi" ? "RSI Strategy" : data.strategy2 === "bollinger" ? "Bollinger Bands" : "MA Strategy"];
+                      return [`$${value.toFixed(4)}`, name];
+                    }}
                     labelFormatter={(label) => `Date: ${label}`}
                   />
                   <Line type="monotone" dataKey="market" stroke="#0ea5e9" dot={false} strokeWidth={3} />
