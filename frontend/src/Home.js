@@ -156,7 +156,7 @@ function Home() {
       <section id="features" style={{ padding: isMobile ? "60px 20px" : "100px 48px", background: "#fff" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="fade-in" style={{ textAlign: "center", marginBottom: 64 }}>
-            <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Built for beginners.<br />Powerful enough for everyone.</h2>
+            <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Built For Beginners.<br />Powerful Enough for Everyone.</h2>
             <p style={{ fontSize: 18, color: "#64748b", maxWidth: 500, margin: "0 auto" }}>No finance degree needed. No confusing terminology. Just clear, honest results.</p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 28 }}>
@@ -182,7 +182,7 @@ function Home() {
         <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", fontSize: 600, fontWeight: 900, color: "#0ea5e9", opacity: 0.1, fontFamily: "Georgia, serif", lineHeight: 1, pointerEvents: "none", userSelect: "none", zIndex: 0 }}>Q</div>
         <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 1 }}>
           <div className="fade-in" style={{ textAlign: "center", marginBottom: 64 }}>
-            <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>What is backtesting?</h2>
+            <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>What Is Backtesting?</h2>
             <p style={{ fontSize: 18, color: "#64748b", maxWidth: 540, margin: "0 auto" }}>The concept is simple — and it's how every professional trader evaluates a strategy before risking real money.</p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 32 : 48, alignItems: "center" }}>
@@ -231,7 +231,7 @@ function Home() {
       <section id="howitworks" style={{ padding: isMobile ? "60px 20px" : "100px 48px", background: "#f0f9ff" }}>
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
           <div className="fade-in" style={{ textAlign: "center", marginBottom: 64 }}>
-            <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>How it works</h2>
+            <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>How It Works</h2>
             <p style={{ fontSize: 18, color: "#64748b" }}>Three steps from zero to understanding your strategy.</p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -256,7 +256,7 @@ function Home() {
       <section style={{ padding: isMobile ? "60px 20px" : "100px 48px", background: "#fff" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="fade-in" style={{ textAlign: "center", marginBottom: 64 }}>
-            <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Live market snapshot</h2>
+            <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Live Market Snapshot</h2>
             <p style={{ fontSize: 18, color: "#64748b", maxWidth: 500, margin: "0 auto" }}>Click any stock to instantly run a backtest on it.</p>
           </div>
           <div className="fade-in" style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 12 : 20 }}>
@@ -343,7 +343,7 @@ function Home() {
       <section style={{ padding: isMobile ? "60px 20px" : "100px 48px", background: "#fff" }}>
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
           <div className="fade-in" style={{ textAlign: "center", marginBottom: 64 }}>
-            <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Frequently asked questions</h2>
+            <h2 style={{ fontSize: isMobile ? 32 : 42, fontWeight: 800, letterSpacing: -1.5, marginBottom: 16 }}>Frequently Asked Questions</h2>
             <p style={{ fontSize: 18, color: "#64748b" }}>Everything a beginner needs to know before getting started.</p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -365,8 +365,8 @@ function Home() {
       {/* Email Signup */}
       <section style={{ padding: isMobile ? "60px 20px" : "80px 48px", background: "#f0f9ff", borderTop: "1px solid #e0f2fe" }}>
         <div className="fade-in" style={{ maxWidth: 560, margin: "0 auto", textAlign: "center" }}>
-          <div style={{ display: "inline-block", background: "#e0f2fe", color: "#0369a1", fontSize: 13, fontWeight: 700, padding: "6px 18px", borderRadius: 100, marginBottom: 20 }}>Stay in the loop</div>
-          <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: -1, marginBottom: 12, color: "#0f172a" }}>New strategies dropping soon</h2>
+          <div style={{ display: "inline-block", background: "#e0f2fe", color: "#0369a1", fontSize: 13, fontWeight: 700, padding: "6px 18px", borderRadius: 100, marginBottom: 20 }}>Stay In The Loop</div>
+          <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: -1, marginBottom: 12, color: "#0f172a" }}>New Strategies Dropping Soon</h2>
           <p style={{ fontSize: 16, color: "#64748b", lineHeight: 1.7, marginBottom: 32 }}>
             ML-based strategies, an iOS app and more are coming. Drop your email and be the first to know.
           </p>
