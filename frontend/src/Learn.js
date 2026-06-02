@@ -220,8 +220,8 @@ function ArticleIllustration({ id }) {
         <text x="48" y="85" textAnchor="end" fill="#ef4444" fontSize="11" fontWeight="700">70</text>
         <text x="48" y="205" textAnchor="end" fill="#22c55e" fontSize="11" fontWeight="700">30</text>
         <text x="48" y="140" textAnchor="end" fill="#475569" fontSize="11">50</text>
-        <text x="660" y="55" fill="#ef4444" fontSize="11" fontWeight="600">OVERBOUGHT</text>
-        <text x="640" y="230" fill="#22c55e" fontSize="11" fontWeight="600">OVERSOLD</text>
+        <text x="600" y="55" fill="#ef4444" fontSize="11" fontWeight="600">OVERBOUGHT</text>
+        <text x="600" y="230" fill="#22c55e" fontSize="11" fontWeight="600">OVERSOLD</text>
         <line x1="60" y1="80" x2="680" y2="80" stroke="#ef4444" strokeWidth="1" strokeDasharray="4,4" opacity="0.5"/>
         <line x1="60" y1="130" x2="680" y2="130" stroke="#334155" strokeWidth="1"/>
         <line x1="60" y1="180" x2="680" y2="180" stroke="#22c55e" strokeWidth="1" strokeDasharray="4,4" opacity="0.5"/>
