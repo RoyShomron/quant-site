@@ -12,7 +12,7 @@ function App() {
         <Route path="/backtest" element={<Backtest />} />
         <Route path="/learn" element={<Learn />} />
       </Routes>
-      <Analytics />
+      <Analytics/>
     </BrowserRouter>
   );
 }
