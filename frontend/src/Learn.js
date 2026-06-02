@@ -367,11 +367,11 @@ function Learn() {
           <span style={{ color: "#0ea5e9", fontSize: 42, fontFamily: "Georgia, serif", verticalAlign: "bottom", lineHeight: 1 }}>Q</span>
           <span style={{ color: "#fff" }}>uantWorld</span>
         </span>
-        <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
-          <span onClick={() => navigate("/")} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>Home</span>
-          <span style={{ color: "#0ea5e9", fontSize: 14, fontWeight: 600 }}>Learn</span>
-          <button onClick={() => navigate("/backtest")} style={{ padding: "8px 20px", background: "#0ea5e9", color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-            Backtest →
+        <div style={{ display: "flex", gap: isMobile ? 12 : 24, alignItems: "center" }}>
+          {!isMobile && <span onClick={() => navigate("/")} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>Home</span>}
+          {!isMobile && <span style={{ color: "#0ea5e9", fontSize: 14, fontWeight: 600 }}>Learn</span>}
+          <button onClick={() => navigate("/backtest")} style={{ padding: isMobile ? "7px 14px" : "8px 20px", background: "#0ea5e9", color: "#fff", border: "none", borderRadius: 10, fontSize: isMobile ? 13 : 14, fontWeight: 700, cursor: "pointer" }}>
+            {isMobile ? "Backtest →" : "Backtest →"}
           </button>
         </div>
       </nav>
