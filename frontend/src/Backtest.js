@@ -8,8 +8,6 @@ function Backtest() {
   const { isMobile } = useWindowSize();
   const [ticker, setTicker] = useState("AAPL");
   const [strategy, setStrategy] = useState("ma_crossover");
-  const [strategy2, setStrategy2] = useState("none");
-  const [compareMode, setCompareMode] = useState(false);
   const [timeframe, setTimeframe] = useState("1y");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -30,14 +28,13 @@ function Backtest() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const runBacktestFor = async (t, s = strategy, tf = timeframe, s2 = strategy2) => {
+  const runBacktestFor = async (t, s = strategy, tf = timeframe) => {
     setLoading(true);
     setError(null);
     setData(null);
     try {
-      const s2param = compareMode && s2 !== "none" ? s2 : "none";
-      console.log("compareMode:", compareMode, "strategy2:", s2, "s2param:", s2param);
-      const response = await fetch(`https://quantworld-backend.onrender.com/backtest?ticker=${t}&strategy=${s}&timeframe=${tf}&strategy2=${s2param}`);
+      // (delete both lines entirely)
+      const response = await fetch(`https://quantworld-backend.onrender.com/backtest?ticker=${t}&strategy=${s}&timeframe=${tf}`);
       const result = await response.json();
       setData(result);
     } catch (err) {
@@ -46,7 +43,7 @@ function Backtest() {
     setLoading(false);
   };
 
-  const runBacktest = () => runBacktestFor(ticker, strategy, timeframe, strategy2);
+  const runBacktest = () => runBacktestFor(ticker, strategy, timeframe);
 
   const fmt = (val, type) => {
     if (val === undefined || val === null) return "-";
@@ -120,30 +117,6 @@ function Backtest() {
               <option value="5y">5 Years</option>
             </select>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 0 }}>Compare</label>
-            <button
-              onClick={() => setCompareMode(!compareMode)}
-              style={{ padding: "12px 20px", background: compareMode ? "rgba(14,165,233,0.2)" : "#1e293b", border: compareMode ? "1.5px solid #0ea5e9" : "1.5px solid #334155", borderRadius: 10, color: compareMode ? "#0ea5e9" : "#64748b", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all 0.2s", width: isMobile ? "100%" : "auto" }}
-            >
-              {compareMode ? "⚡ Compare ON" : "Compare OFF"}
-            </button>
-          </div>
-
-          {compareMode && (
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>Strategy 2</label>
-              <select value={strategy2} onChange={(e) => setStrategy2(e.target.value)} style={{ padding: "12px 20px", background: "#1e293b", border: "1.5px solid #0ea5e9", borderRadius: 10, color: "#0ea5e9", fontSize: 15, width: isMobile ? "100%" : "auto", minWidth: isMobile ? "unset" : 260, outline: "none", cursor: "pointer" }}>
-                <option value="ma_crossover">〽️ MA Crossover (20/50)</option>
-                <option value="rsi">⚡ RSI Strategy (30/70)</option>
-                <option value="bollinger">🎯 Bollinger Bands (20, 2σ)</option>
-                <option disabled>── Coming Soon ──</option>
-                <option disabled>🤖 Logistic Regression (ML)</option>
-                <option disabled>🧠 Random Forest (ML)</option>
-                <option disabled>📡 LSTM Neural Network (ML)</option>
-              </select>
-            </div>
-          )}
 
           <button onClick={runBacktest} style={{ padding: "12px 36px", fontSize: 16, fontWeight: 700, background: loading ? "#334155" : "#0ea5e9", color: loading ? "#64748b" : "#fff", border: "none", borderRadius: 10, cursor: loading ? "not-allowed" : "pointer", transition: "all 0.2s", width: isMobile ? "100%" : "auto" }}>
             {loading ? "Running..." : "Run Backtest →"}
@@ -345,49 +318,6 @@ function Backtest() {
               </div>
             </div>
 
-            {/* Comparison scorecard */}
-            {data.strategy2_metrics && (
-              <div style={{ background: "#1e293b", border: "1px solid #22c55e", borderRadius: 16, padding: 24, marginBottom: 28 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#22c55e" }}></div>
-                  <h3 style={{ color: "#fff", fontWeight: 800, fontSize: 18, margin: 0 }}>Strategy Comparison</h3>
-                  <span style={{ fontSize: 13, color: "#475569" }}>{strategyName} vs {data.strategy2 === "rsi" ? "RSI Strategy" : data.strategy2 === "bollinger" ? "Bollinger Bands" : "MA Strategy"}</span>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(5, 1fr)", gap: 12 }}>
-                  {[
-                    { label: "Total Return", s1: fmt(data.strategy_metrics.total_return, "pct"), s2: fmt(data.strategy2_metrics.total_return, "pct"), s1Val: data.strategy_metrics.total_return, s2Val: data.strategy2_metrics.total_return, higherIsBetter: true },
-                    { label: "Annual Return", s1: fmt(data.strategy_metrics.annualized_return, "pct"), s2: fmt(data.strategy2_metrics.annualized_return, "pct"), s1Val: data.strategy_metrics.annualized_return, s2Val: data.strategy2_metrics.annualized_return, higherIsBetter: true },
-                    { label: "Volatility", s1: fmt(data.strategy_metrics.volatility, "pct"), s2: fmt(data.strategy2_metrics.volatility, "pct"), s1Val: data.strategy_metrics.volatility, s2Val: data.strategy2_metrics.volatility, higherIsBetter: false },
-                    { label: "Sharpe Ratio", s1: fmt(data.strategy_metrics.sharpe_ratio, "ratio"), s2: fmt(data.strategy2_metrics.sharpe_ratio, "ratio"), s1Val: data.strategy_metrics.sharpe_ratio, s2Val: data.strategy2_metrics.sharpe_ratio, higherIsBetter: true },
-                    { label: "Max Drawdown", s1: fmt(data.strategy_metrics.max_drawdown, "pct"), s2: fmt(data.strategy2_metrics.max_drawdown, "pct"), s1Val: data.strategy_metrics.max_drawdown, s2Val: data.strategy2_metrics.max_drawdown, higherIsBetter: false },
-                  ].map((m) => {
-                    const s1Wins = m.higherIsBetter ? m.s1Val > m.s2Val : Math.abs(m.s1Val) < Math.abs(m.s2Val);
-                    return (
-                      <div key={m.label} style={{ background: "#0f172a", borderRadius: 12, padding: 16, border: "1px solid #334155" }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>{m.label}</div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: s1Wins ? "rgba(255,255,255,0.05)" : "transparent", borderRadius: 6, padding: "4px 8px" }}>
-                            <span style={{ fontSize: 11, color: "#475569" }}>Strat 1</span>
-                            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                              {s1Wins && <span style={{ fontSize: 10, color: "#fff" }}>✓</span>}
-                              <span style={{ fontSize: 14, fontWeight: 700, color: s1Wins ? "#fff" : "#475569" }}>{m.s1}</span>
-                            </div>
-                          </div>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: !s1Wins ? "rgba(34,197,94,0.1)" : "transparent", borderRadius: 6, padding: "4px 8px" }}>
-                            <span style={{ fontSize: 11, color: "#475569" }}>Strat 2</span>
-                            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                              {!s1Wins && <span style={{ fontSize: 10, color: "#22c55e" }}>✓</span>}
-                              <span style={{ fontSize: 14, fontWeight: 700, color: !s1Wins ? "#22c55e" : "#475569" }}>{m.s2}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {/* Chart */}
             <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: isMobile ? 20 : 36, marginBottom: 28 }}>
               <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, gap: isMobile ? 12 : 0 }}>
@@ -404,12 +334,6 @@ function Backtest() {
                     <div style={{ width: 16, height: 3, background: "#fff", borderRadius: 2 }}></div>
                     <span style={{ fontSize: 14, color: "#64748b", fontWeight: 600 }}>{strategyName}</span>
                   </div>
-                  {data.strategy2_metrics && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <div style={{ width: 16, height: 3, background: "#22c55e", borderRadius: 2 }}></div>
-                      <span style={{ fontSize: 14, color: "#64748b", fontWeight: 600 }}>{data.strategy2 === "rsi" ? "RSI Strategy" : data.strategy2 === "bollinger" ? "Bollinger Bands" : "MA Strategy"}</span>
-                    </div>
-                  )}
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={isMobile ? 250 : 400}>
@@ -420,17 +344,11 @@ function Backtest() {
                   <Tooltip
                     contentStyle={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 10 }}
                     labelStyle={{ color: "#94a3b8", fontSize: 13 }}
-                    formatter={(value, name) => {
-                      if (name === "market") return [`$${value.toFixed(4)}`, "Buy & Hold"];
-                      if (name === "strategy") return [`$${value.toFixed(4)}`, strategyName];
-                      if (name === "strategy2") return [`$${value.toFixed(4)}`, data.strategy2 === "rsi" ? "RSI Strategy" : data.strategy2 === "bollinger" ? "Bollinger Bands" : "MA Strategy"];
-                      return [`$${value.toFixed(4)}`, name];
-                    }}
+                    formatter={(value, name) => [`$${value.toFixed(4)}`, name === "market" ? "Buy & Hold" : strategyName]}
                     labelFormatter={(label) => `Date: ${label}`}
                   />
                   <Line type="monotone" dataKey="market" stroke="#0ea5e9" dot={false} strokeWidth={3} />
                   <Line type="monotone" dataKey="strategy" stroke="#ffffff" dot={false} strokeWidth={3} />
-                  {data.strategy2_metrics && <Line type="monotone" dataKey="strategy2" stroke="#22c55e" dot={false} strokeWidth={3} />}
                 </LineChart>
               </ResponsiveContainer>
             </div>
