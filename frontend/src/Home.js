@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWindowSize } from "./useWindowSize";
+import { useAuth } from "./AuthContext";
+import AuthModal from "./AuthModal";
 
 const TICKERS = ["AAPL +1.2%", "TSLA -0.8%", "SPY +0.5%", "NVDA +3.1%", "MSFT +0.9%", "AMZN -0.3%", "GOOGL +1.7%", "UBER +0.8%", "JPM +0.6%", "V +0.4%", "NFLX +1.9%"];
 
@@ -41,6 +43,9 @@ function Home() {
   const navigate = useNavigate();
   const observerRef = useRef(null);
   const { isMobile } = useWindowSize();
+  const { user, logout } = useAuth();
+  const [showAuth, setShowAuth] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver((entries) => {
@@ -79,9 +84,40 @@ function Home() {
               Backtest
             </button>
           )}
+          {!isMobile && (
+            <button onClick={() => navigate("/brainteasers")} style={{ padding: "9px 20px", background: "rgba(217,70,239,0.08)", color: "#d946ef", border: "1.5px solid rgba(217,70,239,0.5)", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all 0.18s", boxShadow: "0 0 12px rgba(217,70,239,0.15)" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(217,70,239,0.15)"; e.currentTarget.style.boxShadow = "0 0 20px rgba(217,70,239,0.3)"; e.currentTarget.style.borderColor = "#d946ef"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(217,70,239,0.08)"; e.currentTarget.style.boxShadow = "0 0 12px rgba(217,70,239,0.15)"; e.currentTarget.style.borderColor = "rgba(217,70,239,0.5)"; }}>
+              Brainteasers
+            </button>
+          )}
           <button onClick={() => navigate("/learn")} style={{ padding: "9px 24px", background: "#0ea5e9", color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(14,165,233,0.3)" }}>
             {isMobile ? "Learn →" : "Start Learning →"}
           </button>
+          {user ? (
+            <div style={{ position: "relative" }}>
+              <div onClick={() => setShowUserMenu(!showUserMenu)} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", padding: "6px 12px", borderRadius: 10, border: "1px solid #e0f2fe" }}>
+                {user.photoURL
+                  ? <img src={user.photoURL} alt="" style={{ width: 28, height: 28, borderRadius: "50%" }} />
+                  : <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#0ea5e9", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 13, fontWeight: 700 }}>{(user.displayName || user.email)[0].toUpperCase()}</div>
+                }
+                {!isMobile && <span style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }}>{user.displayName || user.email.split("@")[0]}</span>}
+              </div>
+              {showUserMenu && (
+                <div style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", background: "#fff", border: "1px solid #e0f2fe", borderRadius: 12, padding: 8, minWidth: 160, boxShadow: "0 8px 32px rgba(0,0,0,0.1)", zIndex: 200 }}>
+                  <div style={{ padding: "8px 12px", fontSize: 13, color: "#64748b", borderBottom: "1px solid #f0f9ff", marginBottom: 4 }}>{user.email}</div>
+                  <button onClick={() => { logout(); setShowUserMenu(false); }} style={{ width: "100%", padding: "8px 12px", background: "transparent", border: "none", color: "#ef4444", fontSize: 14, fontWeight: 600, cursor: "pointer", textAlign: "left", borderRadius: 8 }}>Sign out</button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button onClick={() => setShowAuth(true)} style={{ padding: "9px 20px", background: "#f8fafc", color: "#0f172a", border: "1.5px solid #e2e8f0", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", transition: "all 0.2s" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "#0ea5e9"; e.currentTarget.style.color = "#0ea5e9"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.color = "#0f172a"; }}>
+              Sign In
+            </button>
+          )}
+          {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
         </div>
       </nav>
 
@@ -111,14 +147,14 @@ function Home() {
         </div>
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "inline-block", background: "#e0f2fe", color: "#0369a1", fontSize: 13, fontWeight: 700, padding: "6px 18px", borderRadius: 100, marginBottom: 28, letterSpacing: 0.3 }}>
-            Early Access · No Signup Required · Beginner Friendly
+            Early Access · Free to Use · Beginner Friendly
           </div>
           <h1 style={{ fontSize: isMobile ? 36 : 64, fontWeight: 800, lineHeight: 1.1, marginBottom: 24, letterSpacing: isMobile ? -1 : -2, maxWidth: 720 }}>
             Learn trading strategies
             <span style={{ color: "#0ea5e9" }}> that actually work</span>
           </h1>
           <p style={{ fontSize: isMobile ? 16 : 20, color: "#64748b", lineHeight: 1.6, maxWidth: 540, margin: "0 auto 48px", padding: isMobile ? "0 16px" : 0 }}>
-            Pick any stock. Pick a strategy. See exactly how it would have performed — with plain English explanations of every single number.
+            Pick any stock. Pick a strategy. See exactly how it would have performed — with simple explanations of every single number.
           </p>
           <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
             <button onClick={() => navigate("/learn")} style={{ padding: "16px 40px", background: "#0ea5e9", color: "#fff", border: "none", borderRadius: 12, fontSize: 17, fontWeight: 700, cursor: "pointer", transition: "all 0.2s", boxShadow: "0 4px 24px rgba(14,165,233,0.3)" }}
@@ -162,7 +198,7 @@ function Home() {
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 28 }}>
             {[
               { icon: "📊", title: "Real market data", desc: "Every backtest uses actual historical price data — not simulations. See how strategies performed through real market conditions including crashes and rallies." },
-              { icon: "🧠", title: "Plain English explanations", desc: "Every metric comes with a clear explanation of what it means and what your specific result tells you. No more googling what Sharpe Ratio means." },
+              { icon: "🧠", title: "Simple explanations", desc: "Every metric comes with a clear explanation of what it means and what your specific result tells you. No more googling what Sharpe Ratio means." },
               { icon: "⚡", title: "Instant results", desc: "Type in any ticker, click run, and get a full analysis in seconds. Compare strategies side by side and see exactly where one outperforms the other." },
             ].map((f, i) => (
               <div key={i} className="fade-in" style={{ background: "#f8fafc", border: "1px solid #e0f2fe", borderRadius: 20, padding: 36, transition: "all 0.3s", cursor: "default" }}
@@ -348,7 +384,7 @@ function Home() {
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {[
-              { q: "Is this free?", a: "Yes, completely free during early access. No signup, no credit card required. QuantWorld is a passion project built to make quantitative finance accessible to everyone. As we add more advanced features like ML strategies, some may become premium — but the core tool will always be free." },
+              { q: "Is this free?", a: "Yes, completely. QuantWorld is a personal project built to make quantitative finance accessible to everyone. Every strategy, every article, every tool — all free, no subscription, no catch." },
               { q: "What is a ticker symbol?", a: "A ticker is a short abbreviation that identifies a stock. For example, Apple is AAPL, Tesla is TSLA, and the S&P 500 index fund is SPY. You can find any company's ticker by Googling the company name followed by 'stock ticker'." },
               { q: "Can I lose real money here?", a: "No. QuantWorld is purely educational — you are not trading real money at any point. You're testing strategies against historical data to see how they would have performed. Nothing here is financial advice." },
               { q: "What's the difference between backtesting and real trading?", a: "Backtesting applies a strategy to past data to see how it would have performed historically. Real trading applies a strategy to live markets with real money. Past performance never guarantees future results — backtesting is a learning and research tool, not a crystal ball." },
@@ -409,7 +445,7 @@ function Home() {
       {/* CTA */}
       <section className="fade-in" style={{ padding: isMobile ? "60px 20px" : "100px 48px", background: "#0ea5e9", textAlign: "center" }}>
         <h2 style={{ fontSize: 48, fontWeight: 800, color: "#fff", letterSpacing: -1.5, marginBottom: 16 }}>Ready to see how strategies really perform?</h2>
-        <p style={{ fontSize: 20, color: "rgba(255,255,255,0.8)", marginBottom: 40, maxWidth: 480, margin: "0 auto 40px" }}>No signup. Just results.</p>
+        <p style={{ fontSize: 20, color: "rgba(255,255,255,0.8)", marginBottom: 40, maxWidth: 480, margin: "0 auto 40px" }}>Free to use. Real data. Real results.</p>
         <button onClick={() => navigate("/learn")} style={{ padding: "18px 48px", background: "#fff", color: "#0ea5e9", border: "none", borderRadius: 12, fontSize: 18, fontWeight: 800, cursor: "pointer", transition: "all 0.2s" }}
           onMouseEnter={e => e.target.style.transform = "scale(1.04)"}
           onMouseLeave={e => e.target.style.transform = "scale(1)"}>

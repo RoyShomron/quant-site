@@ -1,6 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWindowSize } from "./useWindowSize";
+import { useAuth } from "./AuthContext";
+import AuthModal from "./AuthModal";
+import { MathExpr } from "./MathRenderer";
+import Navbar from "./Navbar";
+import { db } from "./firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const articles = [
   {
@@ -12,14 +18,16 @@ const articles = [
     subtitle: "How math and algorithms replaced gut instinct on Wall Street",
     readTime: "5 min read",
     content: [
-      { type: "intro", text: "Quantitative trading — or 'quant trading' — is the use of mathematical models, statistical analysis, and computer algorithms to make trading decisions. Instead of a human saying 'I think Apple looks good right now,' a quant system says 'based on 47 variables and 10 years of historical data, there is a 62% probability this trade is profitable.'" },
+      { type: "intro", text: "Quantitative trading — or 'quant trading' — is the use of **mathematical models, statistical analysis, and algorithms** to make trading decisions. Instead of a human saying 'Apple looks good,' a quant system says 'based on 10 years of data, there's a 62% probability this trade is profitable.'" },
+      { type: "tldr", points: ["Quant trading replaces gut instinct with math and rules", "Renaissance Technologies' Medallion Fund averaged 66% returns — using 100% algorithms", "The strategies on QuantWorld are the same building blocks every quant researcher starts from"] },
       { type: "heading", text: "How it started" },
-      { type: "text", text: "Before the 1970s, all trading was discretionary — humans made every decision based on research, intuition, and experience. Then Ed Thorp, a mathematics professor, proved you could beat blackjack using probability theory. He applied the same logic to financial markets and made a fortune. Others followed. By the 1980s and 90s, firms like Renaissance Technologies and D.E. Shaw were building massive quantitative trading operations staffed by mathematicians, physicists, and computer scientists — not traditional finance people." },
+      { type: "text", text: "**Before the 1970s, all trading was gut instinct.** Then Ed Thorp — a math professor — proved you could beat blackjack with probability. He applied the same logic to markets and made a fortune. By the 1990s, Renaissance Technologies was staffed entirely by physicists and astronomers. Not a single finance person." },
+      { type: "stat", stats: [{ value: "66%", label: "Avg annual return", sub: "Renaissance Medallion Fund since 1988", color: "#22c55e" }, { value: "$150B+", label: "Top quant firm AUM", sub: "Two Sigma, Citadel, D.E. Shaw combined", color: "#0ea5e9" }] },
+      { type: "myth", myth: "You need a finance degree to understand quant trading.", reality: "Renaissance Technologies hired mathematicians, linguists, and astronomers. The edge is in **pattern recognition and statistics** — not memorising accounting textbooks." },
       { type: "heading", text: "How it works today" },
-      { type: "text", text: "Modern quant trading works in layers. At the bottom is data — price data, earnings data, news sentiment, satellite imagery of parking lots, credit card transaction data, and much more. Above that are signals — mathematical indicators derived from that data that suggest a trade might be profitable. Above that is a strategy — a set of rules for when to buy and sell based on those signals. And at the top is risk management — rules for how much to bet and when to stop." },
-      { type: "highlight", text: "Renaissance Technologies' Medallion Fund — the most successful investment fund in history — has averaged 66% annual returns before fees since 1988. It is run entirely by algorithms with no human discretion in individual trades." },
-      { type: "heading", text: "The three main approaches" },
-      { type: "text", text: "Trend following strategies bet that stocks moving in one direction will continue moving in that direction. The MA Crossover strategy on QuantWorld is a classic trend-following approach. Mean reversion strategies bet the opposite — that prices that have moved too far will snap back. RSI and Bollinger Bands are both mean reversion indicators, though they measure different things: RSI measures momentum speed, while Bollinger Bands measure how far price has deviated from its statistical average." },
+      { type: "text", text: "**Quant trading works in layers.** At the base: data — prices, earnings, even satellite images of parking lots to predict retail sales. Above that: signals — patterns that suggest a trade might work. At the top: risk management — how much to bet, and when to stop." },
+      { type: "heading", text: "The two fundamental bets" },
+      { type: "text", text: "**Trend following** bets that momentum continues — buy when short-term average crosses above the long-term one. **Mean reversion** bets the opposite — prices stretched too far will snap back. RSI and Bollinger Bands are both built on this. Every strategy on QuantWorld is one of these two ideas." },
       { type: "callout", text: "Try it yourself", subtext: "Run the MA Crossover strategy on SPY to see trend-following in action", ticker: "SPY", strategy: "ma_crossover" }
     ]
   },
@@ -32,16 +40,22 @@ const articles = [
     subtitle: "The most widely used indicator in technical analysis — explained simply",
     readTime: "4 min read",
     content: [
-      { type: "intro", text: "A moving average takes the average closing price of a stock over a set number of days, and updates every single day as new prices come in. It smooths out the day-to-day noise of price movements so you can see the underlying trend more clearly." },
+      { type: "intro", text: "A moving average takes the **average closing price over a set number of days**, and updates every single day as new prices come in. It smooths out the daily noise so you can see the actual trend." },
+      { type: "tldr", points: ["Moving averages smooth out daily price noise to reveal the underlying trend", "MA20 = fast (1 month). MA50 = slow (2.5 months)", "When MA20 crosses above MA50 → buy signal. When it crosses below → sell"] },
       { type: "heading", text: "A simple example" },
-      { type: "text", text: "Imagine a stock closes at these prices over 5 days: $10, $12, $11, $13, $14. The 5-day moving average on day 5 is (10+12+11+13+14)/5 = $12. On day 6, if the stock closes at $15, the new 5-day average is (12+11+13+14+15)/5 = $13. The window 'moves' forward every day — hence 'moving' average." },
-      { type: "formula", label: "Formula", formula: "MA(n) = (P₁ + P₂ + ... + Pₙ) / n", vars: [{ var: "n", desc: "Number of days in the window (e.g. 20 or 50)" }, { var: "P₁...Pₙ", desc: "Closing prices over the last n days" }] },
+      { type: "steps", label: "Worked Example", steps: [
+        { label: "Day 1–5 prices",   expr: "\\$10,\\; \\$12,\\; \\$11,\\; \\$13,\\; \\$14" },
+        { label: "5-day MA",         expr: "\\frac{10 + 12 + 11 + 13 + 14}{5} = \\$12.00" },
+        { label: "Day 6 closes at",  expr: "\\$15 \\quad \\Rightarrow \\quad \\text{oldest price (\\$10) drops off}" },
+        { label: "New 5-day MA",     expr: "\\frac{12 + 11 + 13 + 14 + 15}{5} = \\$13.00" },
+      ]},
+      { type: "formula", label: "Formula", formula: "MA(n) = \\frac{P_1 + P_2 + ... + P_n}{n}", vars: [{ var: "n", desc: "Number of days in the window (e.g. 20 or 50)" }, { var: "P_1 ... P_n", desc: "Closing prices over the last n days" }] },
       { type: "heading", text: "Why 20 and 50 days?" },
-      { type: "text", text: "The 20-day moving average (MA20) represents roughly one trading month. It reacts quickly to recent price changes. The 50-day moving average (MA50) represents roughly 2.5 trading months. It moves more slowly and reflects the medium-term trend. Using both together — the MA crossover strategy — gives you a signal: when the fast (MA20) crosses above the slow (MA50), the short-term trend is stronger than the medium-term trend, suggesting upward momentum." },
-      { type: "highlight", text: "The 200-day moving average is used by professional investors to determine the overall long-term trend. When a stock is above its 200-day MA, it's considered in a bull trend. Below it — a bear trend. This is one of the most watched levels on Wall Street." },
-      { type: "heading", text: "The limitation: lag" },
-      { type: "text", text: "Moving averages are lagging indicators — they always react after price has already moved. By the time the MA20 crosses above the MA50, the stock has already been moving up for some time. Compare this to Bollinger Bands, which are also based on moving averages but add a volatility component — the bands widen when price swings are large and narrow when things are calm, making them more dynamic." },
-      { type: "callout", text: "Try it yourself", subtext: "Test the MA Crossover on TSLA — a volatile stock where the strategy behaves differently", ticker: "TSLA", strategy: "ma_crossover" }
+      { type: "text", text: "**MA20 = roughly one trading month.** Reacts fast to recent moves. MA50 = 2.5 months — slower, reflects the medium-term trend. When MA20 crosses above MA50, short-term momentum is overtaking the longer trend. That's the buy signal." },
+      { type: "tip", text: "The **Golden Cross** — when the 50-day MA crosses above the 200-day MA — is one of the most watched signals on Wall Street. When it happens on SPY, institutional traders take notice." },
+      { type: "stat", stats: [{ value: "200", label: "The most-watched number on Wall Street", sub: "Stocks above their 200-day MA = bull trend. Below it = bear trend", color: "#f59e0b" }] },
+      { type: "myth", myth: "MA Crossover signals are precise and timely.", reality: "By the time MA20 crosses above MA50, the stock has **already been rising for days or weeks.** You're always late. That's the fundamental trade-off — certainty vs. timing." },
+      { type: "callout", text: "Try it yourself", subtext: "Test MA Crossover on TSLA — a volatile stock where the lag becomes very visible", ticker: "TSLA", strategy: "ma_crossover" }
     ]
   },
   {
@@ -53,16 +67,16 @@ const articles = [
     subtitle: "The Relative Strength Index — measuring momentum to find overbought and oversold stocks",
     readTime: "5 min read",
     content: [
-      { type: "intro", text: "The Relative Strength Index (RSI) is a momentum indicator that measures how fast and how much a stock's price has been moving. It produces a number between 0 and 100. Above 70 means the stock has been moving up very fast and may be overbought. Below 30 means it has been moving down very fast and may be oversold." },
+      { type: "intro", text: "RSI **measures how fast and how much a stock's price has been moving**, and gives you a number between 0 and 100. Above 70 = moving up too fast, may pull back. Below 30 = falling too fast, may bounce." },
+      { type: "tldr", points: ["RSI measures the speed of price movement, not just its direction", "RSI below 30 = oversold → buy. RSI above 70 = overbought → sell", "Works best in choppy, range-bound markets — not strong trends"] },
       { type: "heading", text: "The formula" },
-      { type: "formula", label: "Formula", formula: "RSI = 100 - (100 / (1 + RS))", vars: [{ var: "RS", desc: "Average gain over 14 days / Average loss over 14 days" }, { var: "Average gain", desc: "Mean of all days with positive returns over the last 14 days" }, { var: "Average loss", desc: "Mean of all days with negative returns over the last 14 days" }] },
-      { type: "text", text: "If a stock has been going up every day for 14 days, RS is very high, and RSI approaches 100. If it's been going down every day, RS approaches 0, and RSI approaches 0. Most of the time RSI bounces between 30 and 70, with extremes at either end signaling potential reversals." },
-      { type: "heading", text: "The trading rule" },
-      { type: "text", text: "The RSI strategy used on QuantWorld is simple: when RSI drops below 30, the stock is considered oversold — it may have fallen too far too fast, and a bounce back is likely, so we buy. When RSI rises above 70, the stock is considered overbought — it may have risen too far too fast, and a pullback is likely, so we sell and hold cash." },
-      { type: "highlight", text: "RSI was developed by J. Welles Wilder Jr. and published in his 1978 book 'New Concepts in Technical Trading Systems.' It remains one of the most widely used indicators in trading 45 years later." },
-      { type: "heading", text: "RSI vs Bollinger Bands" },
-      { type: "text", text: "Both RSI and Bollinger Bands are mean reversion indicators, but they measure different things. RSI measures the speed and magnitude of price movements — it tells you how fast a stock is moving. Bollinger Bands measure statistical deviation — they tell you how far price has moved from its average relative to recent volatility. Professional traders often use both together: RSI to confirm momentum extremes, and Bollinger Bands to confirm that the price has reached a statistically unusual level." },
-      { type: "callout", text: "Try it yourself", subtext: "Run the RSI strategy on AMZN over 3 years to see how it handles volatility", ticker: "AMZN", strategy: "rsi" }
+      { type: "formula", label: "Formula", formula: "RSI = 100 - \\frac{100}{1 + RS}", vars: [{ var: "RS", desc: "Average gain over 14 days ÷ average loss over 14 days" }, { var: "Average gain", desc: "Mean of all up days over the last 14 trading days" }, { var: "Average loss", desc: "Mean of all down days over the last 14 trading days" }] },
+      { type: "text", text: "**All up days for two weeks straight → RSI near 100. All down days → RSI near 0.** In practice it bounces between 30 and 70 most of the time, which is why the extremes are meaningful." },
+      { type: "stat", stats: [{ value: "14", label: "Default period (days)", sub: "Used to calculate average gains and losses", color: "#0ea5e9" }, { value: "30 / 70", label: "The thresholds", sub: "Below 30 = buy signal. Above 70 = sell signal", color: "#22c55e" }] },
+      { type: "myth", myth: "RSI below 30 means the stock is guaranteed to bounce.", reality: "In a bear market, **stocks can stay oversold for weeks.** RSI is a probability indicator — it says a bounce is more likely than usual, not that it's certain. Context matters enormously." },
+      { type: "highlight", text: "RSI was developed by J. Welles Wilder Jr. and published in 1978. It remains one of the most widely used indicators in trading 45 years later — a rare sign that the underlying idea is genuinely robust." },
+      { type: "tip", text: "Professional traders use **RSI + Bollinger Bands together.** RSI confirms the momentum extreme. Bollinger Bands confirm the price is statistically unusual. Two independent signals pointing the same way is far stronger than either alone." },
+      { type: "callout", text: "Try it yourself", subtext: "Run RSI on AMZN over 1 year to see how it handles a range-bound period", ticker: "AMZN", strategy: "rsi" }
     ]
   },
   {
@@ -74,18 +88,76 @@ const articles = [
     subtitle: "Using volatility to identify when a stock has moved too far — and when it might snap back",
     readTime: "5 min read",
     content: [
-      { type: "intro", text: "Bollinger Bands are a volatility-based indicator that draws three lines on a price chart: a 20-day moving average in the middle, and two bands placed 2 standard deviations above and below it. When a stock's price touches the lower band, it may have fallen too far too fast. When it touches the upper band, it may have risen too far too fast." },
-      { type: "heading", text: "The formula" },
-      { type: "formula", label: "Formula", formula: "Upper Band = MA(20) + 2σ\nLower Band = MA(20) − 2σ", vars: [{ var: "MA(20)", desc: "20-day simple moving average of closing prices" }, { var: "σ", desc: "Standard deviation of closing prices over the last 20 days" }, { var: "2σ", desc: "Two standard deviations — statistically, ~95% of prices fall within this range" }] },
-      { type: "text", text: "The key insight is that the bands are dynamic — they expand when the stock is volatile and contract when it's calm. A stock that normally trades in a tight range suddenly breaking outside the bands is a much stronger signal than one that regularly swings wildly. This self-adjusting nature makes Bollinger Bands more adaptive than fixed-level indicators." },
-      { type: "heading", text: "The trading rule" },
-      { type: "text", text: "The Bollinger Bands strategy on QuantWorld uses a mean-reversion approach: when price drops to or below the lower band, the stock is considered statistically oversold — buy in. When price rises to or above the upper band, the stock is considered statistically overbought — sell and hold cash. The idea is that prices tend to revert to their mean over time." },
-      { type: "highlight", text: "Bollinger Bands were developed by John Bollinger in the 1980s. He designed them specifically to give relative definitions of high and low — a price is 'high' when it touches the upper band and 'low' when it touches the lower band, always relative to recent volatility, not an absolute level." },
-      { type: "heading", text: "How it compares to RSI and MA Crossover" },
-      { type: "text", text: "All three strategies on QuantWorld take fundamentally different approaches. The MA Crossover is trend-following — it bets that momentum continues. RSI is a momentum oscillator — it measures how fast prices are moving and flags extremes. Bollinger Bands are volatility-based — they measure how far price has deviated from its recent average. Professional traders often combine all three: use MA Crossover to identify the trend, RSI to time entries, and Bollinger Bands to assess whether the current price is statistically extreme." },
-      { type: "heading", text: "Why Bollinger Bands underperform in bull markets" },
-      { type: "text", text: "If you test Bollinger Bands on a stock like AAPL or SPY over the past year, you'll notice the strategy often dramatically underperforms buy and hold. This is because in a strong bull market, stocks trend upward without ever touching the lower band — so the strategy barely invests at all, sitting in cash while the market rallies. Try it on TSLA or a volatile stock over 3-5 years and you'll see it perform much better." },
-      { type: "callout", text: "Try it yourself", subtext: "Test Bollinger Bands on TSLA over 3 years — volatile stocks show this strategy at its best", ticker: "TSLA", strategy: "bollinger" }
+      { type: "intro", text: "Bollinger Bands draw **three lines on a chart: a 20-day average in the middle, and two bands 2 standard deviations above and below it.** Price at the lower band = may have fallen too far. Upper band = may have risen too far." },
+      { type: "tldr", points: ["The bands self-adjust — they widen in volatile markets and narrow in calm ones", "Price touching the lower band = potential buy. Upper band = potential sell", "Underperforms badly in strong bull markets — price just drifts up, never touching the lower band"] },
+      { type: "formula", label: "Formula", formula: "Upper = MA_{20} + 2\\sigma\nLower = MA_{20} - 2\\sigma", vars: [{ var: "MA_{20}", desc: "20-day simple moving average of closing prices" }, { var: "\\sigma", desc: "Standard deviation of closing prices over the last 20 days" }, { var: "2\\sigma", desc: "Two standard deviations — ~95% of prices fall within this range" }] },
+      { type: "stat", stats: [{ value: "95%", label: "Of prices stay inside the bands", sub: "By statistical definition — touches are genuinely rare events worth noticing", color: "#8b5cf6" }] },
+      { type: "text", text: "**The bands are dynamic — that's the key insight.** They widen automatically when a stock starts swinging wildly and tighten when it calms down. A lower-band touch on a calm stock is a completely different signal to one on TSLA." },
+      { type: "tip", text: "**The Bollinger Squeeze** — when the bands narrow unusually tight — often precedes a big move in either direction. Traders watch for the squeeze as an early warning before a breakout." },
+      { type: "myth", myth: "Bollinger Bands work on any stock in any market.", reality: "In a **strong uptrend, price just drifts upward and never touches the lower band.** The strategy sits in cash the whole time the market rallies. Try it on SPY over the past year and you'll see it immediately." },
+      { type: "highlight", text: "Bollinger Bands were developed by John Bollinger in the 1980s. He designed them to give relative definitions of 'high' and 'low' — always relative to recent volatility, never an absolute price level." },
+      { type: "callout", text: "Try it yourself", subtext: "Test Bollinger Bands on TSLA over 1 year — volatile stocks show this strategy at its best", ticker: "TSLA", strategy: "bollinger" }
+    ]
+  },
+  {
+    id: "macd",
+    icon: "📉",
+    tag: "Strategies",
+    tagColor: "#22c55e",
+    title: "What is MACD?",
+    subtitle: "The momentum indicator used by traders worldwide to spot trend reversals early",
+    readTime: "5 min read",
+    content: [
+      { type: "intro", text: "MACD stands for Moving Average Convergence Divergence — but the idea is simple. **Take two moving averages, subtract one from the other, and watch whether the gap is growing or shrinking.** Growing = momentum building. Shrinking = momentum fading." },
+      { type: "tldr", points: ["MACD tracks the gap between a fast and slow moving average", "When the MACD line crosses above the signal line → buy. Below → sell", "Faster signals than MA Crossover — but more false signals in choppy markets"] },
+      { type: "formula", label: "The two lines", formula: "MACD = EMA_{12} - EMA_{26}\nSignal = EMA_9(MACD)", vars: [{ var: "EMA_{12}", desc: "12-day exponential moving average — the fast line" }, { var: "EMA_{26}", desc: "26-day exponential moving average — the slow line" }, { var: "Signal", desc: "9-day EMA of the MACD line — generates the actual buy/sell trigger" }] },
+      { type: "text", text: "**Both lines hover around zero.** When a stock is trending up, the short-term average pulls ahead — MACD rises above zero. When momentum fades, the gap closes. The actual buy signal fires when the MACD line crosses above the signal line — not when it crosses zero." },
+      { type: "stat", stats: [{ value: "12/26/9", label: "The standard MACD settings", sub: "Fast average / Slow average / Signal line — used by traders worldwide", color: "#10b981" }] },
+      { type: "tip", text: "MACD uses **exponential** moving averages — they weight recent prices more heavily than older ones. This makes it react faster than plain MA Crossover, which is why it generates signals earlier but also creates more false alarms." },
+      { type: "myth", myth: "MACD works in all market conditions.", reality: "In flat, sideways markets, **the lines cross back and forth constantly** — triggering dozens of small losing trades. MACD is a trend-following tool. No trend, no edge." },
+      { type: "highlight", text: "MACD was developed by Gerald Appel in the late 1970s. It appears in virtually every charting platform in the world and is used by traders at every level — from retail to institutional desks." },
+      { type: "callout", text: "Try it yourself", subtext: "Run MACD on NVDA or TSLA — momentum stocks where it performs well", ticker: "NVDA", strategy: "macd" }
+    ]
+  },
+  {
+    id: "volatility",
+    icon: "⚡",
+    tag: "Foundations",
+    tagColor: "#0ea5e9",
+    title: "What is Volatility?",
+    subtitle: "Why some stocks swing wildly and others barely move — and why it matters for every strategy",
+    readTime: "5 min read",
+    content: [
+      { type: "intro", text: "Volatility is **how much a stock's price swings around**. SPY barely moves day to day. TSLA can drop 10% on a Tuesday for no reason. Neither is better or worse — but it completely changes which strategies you should use." },
+      { type: "tldr", points: ["Volatility = how wildly a stock moves day to day", "SPY ≈ 15% annualized. TSLA ≈ 70%. Crypto can hit 100%+", "Mean reversion strategies love high volatility. Trend-following strategies hate it"] },
+      { type: "formula", label: "How it's measured", formula: "\\sigma = \\sqrt{\\frac{\\sum (r_i - \\bar{r})^2}{n}}", vars: [{ var: "r_i", desc: "Each individual daily return" }, { var: "\\bar{r}", desc: "The mean (average) daily return over the period" }, { var: "n", desc: "Number of trading days measured" }, { var: "\\sigma", desc: "Volatility — how far returns scatter from the average" }] },
+      { type: "stat", stats: [{ value: "~15%", label: "SPY annualized volatility", sub: "Calm, steady — great for trend following", color: "#22c55e" }, { value: "~70%", label: "TSLA annualized volatility", sub: "Wild swings — ideal for mean reversion", color: "#ef4444" }] },
+      { type: "heading", text: "Why it matters for strategies" },
+      { type: "text", text: "**Bollinger Bands and RSI need big swings to work.** On a calm stock, price never reaches the outer bands and RSI never dips below 30 — the strategy barely trades. Meanwhile, MA Crossover and MACD get wrecked by high volatility — the lines cross back and forth constantly, triggering dozens of small losses." },
+      { type: "myth", myth: "High volatility = bad investment.", reality: "Volatility and direction are completely separate. **A volatile stock that doubles is great.** A calm stock that loses 30% slowly is terrible. Volatility just tells you about the ride — not the destination." },
+      { type: "highlight", text: "The VIX — the 'fear gauge' — measures expected S&P 500 volatility over the next 30 days. When it spikes above 30, markets are in panic mode. High VIX completely changes which strategies work — the regime has shifted." },
+      { type: "callout", text: "See it in action", subtext: "Run RSI on TSLA vs SPY — see how differently the same strategy behaves at different volatility levels", ticker: "TSLA", strategy: "rsi" }
+    ]
+  },
+  {
+    id: "backtesting",
+    icon: "🔬",
+    tag: "Foundations",
+    tagColor: "#0ea5e9",
+    title: "What is Backtesting?",
+    subtitle: "How traders use historical data to test a strategy before risking real money",
+    readTime: "5 min read",
+    content: [
+      { type: "intro", text: "Backtesting means **replaying a trading strategy on historical data** to see what would have happened. Did it make money? How bad was the worst drop? You're time-traveling to stress-test an idea before any real money is at stake." },
+      { type: "tldr", points: ["Backtesting simulates a strategy on past prices to measure its real performance", "Good results show return, Sharpe ratio, and max drawdown — not just profit", "Overfitting is the #1 trap — a strategy that looks perfect on history may have just memorized it"] },
+      { type: "text", text: "**The concept is simple:** take a stock's historical prices, apply your buy/sell rules day-by-day from the past to today, and track what your portfolio would have been worth at every point. That's exactly what QuantWorld does — every trade simulated, every metric calculated." },
+      { type: "stat", stats: [{ value: "Sharpe", label: "Return per unit of risk", sub: "Above 1.0 is good. Above 2.0 is excellent", color: "#0ea5e9" }, { value: "Drawdown", label: "Worst peak-to-trough loss", sub: "The number that makes people panic-sell", color: "#ef4444" }] },
+      { type: "myth", myth: "A high return on a backtest means the strategy works.", reality: "A return number alone means nothing. **If a strategy made 80% last year but had a -60% drawdown**, most people would have panic-sold at the bottom and locked in a loss. Sharpe ratio, drawdown, and volatility are what actually matter." },
+      { type: "heading", text: "The big catch: overfitting" },
+      { type: "text", text: "**If you tweak a strategy until it looks perfect on historical data, you've probably just memorised the past** — not found a real edge. A strategy that made 80% last year might have gotten lucky on three big moves that won't repeat." },
+      { type: "tip", text: "This is why QuantWorld uses **well-known, decade-tested strategies** — not custom-built ones that only look good on one specific chart. The ML strategies use walk-forward validation, meaning every signal was generated on data the model genuinely hadn't seen." },
+      { type: "highlight", text: "Quant funds run millions of backtests as part of their research process, testing thousands of variations to find signals that are genuinely predictive — not just lucky." },
+      { type: "callout", text: "Try it yourself", subtext: "Run any strategy on SPY across 1 year and compare it to buy-and-hold", ticker: "SPY", strategy: "ma_crossover" }
     ]
   },
   {
@@ -97,48 +169,280 @@ const articles = [
     subtitle: "Why how much risk you took matters just as much as how much you made",
     readTime: "6 min read",
     content: [
-      { type: "intro", text: "Imagine two investors. Investor A made 20% last year. Investor B also made 20% last year. Who did better? You can't answer that without knowing how much risk each one took to get there. If Investor A barely felt any volatility and Investor B's portfolio dropped 40% at one point before recovering — they did not perform equally well. Risk-adjusted returns measure exactly this: how much return did you earn per unit of risk?" },
+      { type: "intro", text: "Two investors both made 20% last year. **Without knowing how much risk each took, you cannot say who did better.** If one had a smooth ride and the other's portfolio dropped 40% before recovering — they didn't perform equally. Risk-adjusted returns measure exactly this." },
+      { type: "tldr", points: ["A 20% return means nothing without knowing the risk taken to get it", "Sharpe ratio = return ÷ all volatility. Sortino = return ÷ downside volatility only", "Max drawdown = worst peak-to-trough loss — the number that makes people panic-sell"] },
+      { type: "myth", myth: "The strategy with the highest return is always the best.", reality: "**A fund making 15%/year with -8% max drawdown beats one making 20%/year with -40% drawdown.** The second fund loses clients every rough patch. Real performance is return per unit of risk — not raw return." },
       { type: "heading", text: "The Sharpe Ratio" },
-      { type: "formula", label: "Formula", formula: "Sharpe Ratio = (Rp − Rf) / σp", vars: [{ var: "Rp", desc: "Portfolio return — your annualized return" }, { var: "Rf", desc: "Risk-free rate — what you'd earn with zero risk (e.g. US Treasury bills)" }, { var: "σp", desc: "Standard deviation of returns — how much your returns varied (volatility)" }] },
-      { type: "text", text: "The Sharpe ratio divides your excess return (return above the risk-free rate) by your volatility. A higher Sharpe means you earned more return per unit of risk. A Sharpe of 1.0 is generally considered acceptable. Above 2.0 is excellent. The best hedge funds in the world target Sharpe ratios of 1.5-2.5 consistently." },
-      { type: "highlight", text: "Warren Buffett's Berkshire Hathaway has a lifetime Sharpe ratio of approximately 0.76 — impressive given the scale, but lower than many quant funds because of the concentrated, long-only nature of the portfolio." },
+      { type: "formula", label: "Formula", formula: "Sharpe = \\frac{R_p - R_f}{\\sigma_p}", vars: [{ var: "R_p", desc: "Portfolio return — your annualised return" }, { var: "R_f", desc: "Risk-free rate — what you'd earn holding Treasury bills" }, { var: "\\sigma_p", desc: "Standard deviation of ALL daily returns — up days and down days" }] },
+      { type: "text", text: "**A higher Sharpe means more return earned per unit of risk.** Sharpe of 1.0 = acceptable. 2.0+ = excellent. The best quant funds in the world target 1.5–2.5 consistently." },
+      { type: "stat", stats: [{ value: "0.76", label: "Warren Buffett's lifetime Sharpe", sub: "Impressive at scale — but lower than many quant funds", color: "#f59e0b" }, { value: "2.0+", label: "Elite quant fund target", sub: "What the best systematic funds aim for consistently", color: "#22c55e" }] },
+      { type: "heading", text: "The Sortino Ratio — Sharpe's smarter cousin" },
+      { type: "text", text: "**Sharpe has one flaw: it penalises big up days the same as big down days.** But no investor complains about a 5% gain day. Why should that hurt your score? The Sortino ratio fixes this by only measuring downside volatility." },
+      { type: "formula", label: "Formula", formula: "Sortino = \\frac{R_p - R_f}{\\sigma_d}", vars: [{ var: "R_p", desc: "Portfolio return — identical to Sharpe" }, { var: "R_f", desc: "Risk-free rate — identical to Sharpe" }, { var: "\\sigma_d", desc: "Downside deviation — standard deviation of NEGATIVE returns only" }] },
+      { type: "text", text: "**The only difference is the denominator.** Sortino ignores positive days entirely when calculating risk. This means a strategy that has big wins but small losses will have a much higher Sortino than Sharpe — correctly reflecting that it's a good strategy." },
+      { type: "text", text: "Imagine two strategies both with Sharpe 0.8. **Strategy A has huge winning months but tiny losses. Strategy B swings wildly in both directions.** Sharpe treats them equally. Sortino gives Strategy A a 1.6 and Strategy B a 0.7 — revealing which one you'd actually want to hold." },
       { type: "heading", text: "Maximum Drawdown" },
-      { type: "text", text: "Max drawdown measures the worst peak-to-trough decline you would have experienced. If your portfolio hit $100,000, then dropped to $60,000 before recovering, your max drawdown is -40%. This metric is psychologically critical — most investors panic-sell during large drawdowns, locking in losses permanently and missing the recovery. A strategy with a lower max drawdown is easier to hold through, even if its total return is slightly lower." },
-      { type: "text", text: "Professional quant funds obsess over drawdown. A fund that makes 15% per year with a max drawdown of -8% is far more valuable than one that makes 20% per year with a -40% drawdown — because the second fund will lose investors whenever it hits a rough patch. This is why Bollinger Bands and RSI — despite often having lower total returns than buy and hold in bull markets — can still be valuable: they typically produce much smaller drawdowns." },
-      { type: "callout", text: "Try it yourself", subtext: "Compare Sharpe ratios between MA Crossover, RSI, and Bollinger Bands on the same ticker", ticker: "SPY", strategy: "ma_crossover" }
+      { type: "text", text: "**Max drawdown = the worst peak-to-trough decline you'd have experienced.** Portfolio hits $100k, drops to $60k, then recovers → max drawdown is -40%." },
+      { type: "text", text: "**Most investors panic-sell during large drawdowns**, locking in losses permanently and missing the recovery. A strategy with a lower max drawdown is psychologically easier to hold — even if total return is slightly lower." },
+      { type: "text", text: "**A fund making 15%/year with -8% drawdown beats one making 20%/year with -40% drawdown.** The second fund loses clients every rough patch." },
+      { type: "callout", text: "Try it yourself", subtext: "Run Random Forest on AMZN 5y and compare the Sharpe vs Sortino — the gap reveals how well it avoided the 2022 crash", ticker: "AMZN", strategy: "random_forest" }
+    ]
+  },
+  {
+    id: "logistic-regression",
+    icon: "🤖",
+    tag: "ML Strategy",
+    tagColor: "#a855f7",
+    title: "Logistic Regression in Trading",
+    subtitle: "How machine learning learns buy and sell signals directly from price history",
+    readTime: "6 min read",
+    content: [
+      { type: "intro", text: "Logistic Regression doesn't use a fixed rule like 'buy when RSI drops below 30.' Instead, **it learns the rule from data.** Feed it years of price history — RSI, MACD, momentum, volatility — and it figures out which combinations historically predicted an up day. Then it applies those learned weights to generate signals going forward." },
+      { type: "tldr", points: ["LR is trained on 80% of historical data, then generates signals on the rest", "It combines RSI, MACD, Bollinger Band position, momentum — all at once", "Unlike rule-based strategies, the signals adapt to what actually worked on that specific stock"] },
+      { type: "heading", text: "From rules to learning" },
+      { type: "text", text: "**Every strategy you've seen so far uses a fixed rule** — MA20 crosses MA50, buy. RSI below 30, buy. These rules were designed by human traders and tested manually." },
+      { type: "text", text: "Logistic Regression takes a different approach. **It looks at historical price data and asks: given these indicators on this day, what usually happened next?** The model learns which indicator combinations tend to precede up days vs. down days." },
+      { type: "stat", stats: [{ value: "9", label: "Features used", sub: "RSI, MACD, BB position, momentum (5/10/20d), MA ratio, volume", color: "#a855f7" }, { value: "80/20", label: "Train/test split", sub: "Model learns on first 80% of data, signals tested on remaining 20%", color: "#0ea5e9" }] },
+      { type: "heading", text: "Feature engineering" },
+      { type: "text", text: "**Raw price data is useless to a model.** A stock being at $150 means nothing — the model can't compare that number across different stocks or different years." },
+      { type: "text", text: "**Feature engineering transforms raw prices into meaningful indicators.** RSI normalizes momentum on a 0–100 scale. MACD captures trend direction. Bollinger Band position shows whether price is statistically extreme. These numbers are comparable across stocks and time periods." },
+      { type: "heading", text: "How the model generates signals" },
+      { type: "text", text: "**The model learns a weight for each feature.** Maybe it discovers that RSI below 35 combined with positive 5-day momentum historically preceded up days 62% of the time on AAPL. Those weights get stored." },
+      { type: "text", text: "On each new day, it takes the current indicator values, applies the learned weights, and **outputs a probability: 70% chance tomorrow is an up day.** If above 50%, the signal is Buy. Below 50%, stay in cash." },
+      { type: "highlight", text: "Logistic Regression was first used for medical diagnosis — predicting whether a patient had a disease based on symptoms. The same math applies perfectly to trading: given these market 'symptoms,' what does the stock do next?" },
+      { type: "heading", text: "Why it's better than a single indicator" },
+      { type: "text", text: "**RSI alone misses trend context. MACD alone misses volatility context. LR uses all of them simultaneously** — weighting each by how predictive it actually was on this specific stock's history." },
+      { type: "myth", myth: "More features always make the model smarter.", reality: "Adding irrelevant features can actually **hurt performance** by introducing noise the model tries to learn patterns from. Feature selection — choosing only genuinely predictive inputs — is as important as the model itself." },
+      { type: "callout", text: "Test it live", subtext: "Run Logistic Regression on AAPL or TSLA and compare it to RSI or MACD", ticker: "AAPL", strategy: "logistic_regression" }
+    ]
+  },
+  {
+    id: "random-forest",
+    icon: "🌲",
+    tag: "ML Strategy",
+    tagColor: "#a855f7",
+    title: "Random Forest in Trading",
+    subtitle: "Why 100 imperfect decision trees combined beat any single perfect rule",
+    readTime: "6 min read",
+    content: [
+      { type: "intro", text: "A Random Forest builds **100 decision trees**, each trained on a slightly different random slice of the historical data and features. Each tree votes on tomorrow's direction. The majority wins. This ensemble approach is far more powerful than any single rule — or even Logistic Regression — because it captures complex, non-linear interactions between indicators." },
+      { type: "tldr", points: ["100 decision trees each vote — majority decides the Buy/Sell signal", "Captures non-linear patterns that Logistic Regression misses", "More powerful but higher risk of overfitting on short datasets — use 3–5 year timeframes"] },
+      { type: "heading", text: "What is a decision tree?" },
+      { type: "text", text: "**A decision tree is a series of yes/no questions.** Is RSI below 40? → Yes. Is 5-day momentum positive? → Yes. Is MACD above signal line? → No → Predict: Down Day." },
+      { type: "text", text: "**A single decision tree is brittle** — it overfits to the specific historical data it was trained on. **Random Forest fixes this by building 100 different trees**, each seeing a random subset of the training data and a random subset of features. Then averaging their votes." },
+      { type: "stat", stats: [{ value: "100", label: "Decision trees per forest", sub: "Each trained on a random data + feature subset to prevent overfitting", color: "#22c55e" }, { value: "6", label: "Max tree depth", sub: "Limits complexity so trees generalize, not just memorize", color: "#a855f7" }] },
+      { type: "heading", text: "Why it beats Logistic Regression" },
+      { type: "text", text: "**Logistic Regression assumes the relationship between features and predictions is linear.** Random Forest has no such assumption — each tree can carve the feature space any way it wants." },
+      { type: "text", text: "**Example:** LR might miss the pattern 'RSI below 30 AND volume spike → strong buy signal' because these two factors interact multiplicatively, not additively. A decision tree naturally captures this: 'If RSI < 30 AND vol_change > 0.5, predict Up.'" },
+      { type: "highlight", text: "Random Forests are used by hedge funds for 'factor models' — predicting stock returns from dozens of fundamental and technical signals simultaneously. The ensemble approach mirrors the quant philosophy: no single signal is reliable, but many weak signals combined can be." },
+      { type: "heading", text: "The overfitting risk" },
+      { type: "text", text: "**More powerful models come with higher overfitting risk.** With only 1 year of daily data (~252 rows), 100 trees have plenty of capacity to memorise noise rather than learn real patterns." },
+      { type: "myth", myth: "A more complex model will always find better patterns.", reality: "With 252 rows of data, 100 decision trees can **memorise every trade** rather than learn anything real. More data beats more complexity every time. Use 3–5 year timeframes for RF to see genuine edge." },
+      { type: "tip", text: "QuantWorld's Random Forest uses **walk-forward validation** — every signal was generated on data the model had never seen. That 119% on AMZN 5y isn't a memorised backtest. It's a rolling out-of-sample result." },
+      { type: "callout", text: "Test it live", subtext: "Run Random Forest on SPY over 3 years — more data gives the ensemble real patterns to learn", ticker: "SPY", strategy: "random_forest" }
+    ]
+  },
+  {
+    id: "quant-glossary",
+    icon: "📖",
+    tag: "Foundations",
+    tagColor: "#0ea5e9",
+    title: "Key Terms in Quant Finance",
+    subtitle: "Alpha, overfitting, regime, signal — the jargon decoded in plain English",
+    readTime: "6 min read",
+    content: [
+      { type: "intro", text: "Quant finance has its own language. **You'll see the same dozen or so terms in virtually every paper, article, and strategy discussion.** Once you know them, you can follow any conversation — and spot when someone doesn't actually know what they're talking about." },
+      { type: "tldr", points: ["Alpha = returns above what the market gives for free. That's the whole game.", "Overfitting = a strategy that looks perfect on past data because it memorised it, not because it works", "Regime = the current market environment. Strategies that work in bull markets break in bear markets."] },
+      { type: "heading", text: "The Core Concepts" },
+      { type: "terms", items: [
+        { term: "Alpha", color: "#22c55e", def: "The return you earned above what holding the market would have given you.", example: "Market up 15%, you up 20% → alpha of 5%" },
+        { term: "Beta", color: "#0ea5e9", def: "How much your portfolio moves when the market moves. Beta 1.5 = you move 50% more than the index in both directions.", example: "Most retail strategies have high beta — they just ride the market" },
+        { term: "Signal", color: "#f59e0b", def: "Any pattern, indicator, or data point that suggests a trade might be profitable. Most signals are weak alone — quant funds combine dozens.", example: "RSI below 30, MACD crossover, ML model outputting 68% probability" },
+        { term: "Regime", color: "#a855f7", def: "The current market environment — bull (rising), bear (falling), or choppy (sideways). The same strategy can win in one regime and fail in another.", example: "Trend-following loves bull regimes. Mean reversion shines in choppy ones" }
+      ]},
+      { type: "heading", text: "The Honesty Terms" },
+      { type: "terms", items: [
+        { term: "Overfitting", color: "#ef4444", def: "When a strategy has been tuned so precisely to historical data that it just memorised the past. Looks perfect in backtests, fails immediately in live trading.", example: "47 custom rules each catching one specific old move = overfitted" },
+        { term: "In-Sample", color: "#64748b", def: "The data a model was trained on. Testing a model on its own training data is like giving a student the exam answers in advance — meaningless.", example: "Training on 2015–2020 then testing on 2015–2020 = dishonest backtest" },
+        { term: "Out-of-Sample", color: "#0ea5e9", def: "Data the model genuinely never saw during training. The only honest measure of real performance.", example: "Training on 2015–2020, testing on 2020–2024 = honest result" },
+        { term: "Walk-Forward", color: "#10b981", def: "The gold standard — train on the first chunk, test on the next, retrain, test again. Every prediction made on truly unseen data. QuantWorld's ML strategies use this.", example: "Retrain monthly, only predict the next month you haven't seen yet" }
+      ]},
+      { type: "heading", text: "The Strategy Terms" },
+      { type: "terms", items: [
+        { term: "Mean Reversion", color: "#8b5cf6", def: "The bet that extreme price moves will reverse back to average. RSI and Bollinger Bands are built on this philosophy.", example: "Stock drops 15% in a week → likely oversold → may bounce" },
+        { term: "Momentum", color: "#0ea5e9", def: "The opposite bet — that recent winners keep winning and recent losers keep losing. MA Crossover and MACD are momentum strategies.", example: "Stock has trended up 3 months straight → likely continues" },
+        { term: "Feature Engineering", color: "#f59e0b", def: "Transforming raw prices into inputs a model can learn from. Raw price ($150) is meaningless across stocks and time. RSI, MACD, and momentum ratios are comparable.", example: "Where most of the real alpha in ML trading comes from" },
+        { term: "Slippage", color: "#f97316", def: "The gap between the price you expected and the price you actually got. Every trade costs a little extra — QuantWorld backtests assume zero cost, so real results are slightly lower.", example: "Buy order sent at $100.00, filled at $100.04 = 4¢ slippage" }
+      ]},
+      { type: "heading", text: "The Basics" },
+      { type: "terms", items: [
+        { term: "Long", color: "#22c55e", def: "You own the asset. You profit when the price goes up. All QuantWorld strategies are long-only — you're either invested or in cash.", example: "Buy 100 shares of AAPL = long position" },
+        { term: "Short", color: "#ef4444", def: "You borrow shares and sell them, hoping to buy them back cheaper later. Profit when price falls. Requires a margin account — riskier than going long.", example: "Borrow and sell at $100, buy back at $80 = $20 profit" }
+      ]},
+      { type: "myth", myth: "These terms are just jargon to sound smart.", reality: "**Alpha, beta, regime, overfitting** — each one describes a concept that genuinely changes how you evaluate a strategy. When someone says 'our Sharpe is 1.8 out-of-sample across regimes,' they're saying something specific and verifiable. That's why the language exists." },
+      { type: "callout", text: "See these in action", subtext: "Run any strategy and check the Performance Breakdown — alpha, drawdown, and Sharpe all in one place", ticker: "SPY", strategy: "ma_crossover" }
+    ]
+  },
+  {
+    id: "win-rate",
+    icon: "🎯",
+    tag: "Metrics",
+    tagColor: "#f59e0b",
+    title: "Win Rate & Expectancy",
+    subtitle: "Why a strategy that loses 70% of its trades can still make you rich",
+    readTime: "5 min read",
+    content: [
+      { type: "intro", text: "Win rate is the percentage of trades that make money. **It sounds like the most important number — but it's almost meaningless on its own.** A strategy that wins 30% of the time can massively outperform one that wins 80%. The size of the wins and losses is what actually matters." },
+      { type: "tldr", points: ["Win rate alone tells you nothing — you need to know the size of wins vs losses", "Expectancy = the average profit per trade, accounting for both outcomes", "Trend-following strategies win rarely but make huge gains when right. Mean reversion wins often but makes small gains each time."] },
+      { type: "heading", text: "The maths that breaks the intuition" },
+      { type: "steps", label: "Strategy A — 80% win rate", steps: [
+        { label: "Win rate",   expr: "W = 80\\%,\\quad \\bar{w} = +1\\%\\text{ per win}" },
+        { label: "Loss rate",  expr: "L = 20\\%,\\quad \\bar{l} = -10\\%\\text{ per loss}" },
+        { label: "Expectancy", expr: "E = (0.80 \\times 1\\%) + (0.20 \\times -10\\%) = -1.2\\%\\text{ per trade}" },
+      ]},
+      { type: "steps", label: "Strategy B — 30% win rate", steps: [
+        { label: "Win rate",   expr: "W = 30\\%,\\quad \\bar{w} = +15\\%\\text{ per win}" },
+        { label: "Loss rate",  expr: "L = 70\\%,\\quad \\bar{l} = -3\\%\\text{ per loss}" },
+        { label: "Expectancy", expr: "E = (0.30 \\times 15\\%) + (0.70 \\times -3\\%) = +2.4\\%\\text{ per trade}" },
+      ]},
+      { type: "formula", label: "Expectancy Formula", formula: "E = (W \\times \\bar{w}) - (L \\times \\bar{l})", vars: [{ var: "W", desc: "Win rate — fraction of trades that are profitable (e.g. 0.40)" }, { var: "\\bar{w}", desc: "Average size of winning trades" }, { var: "L", desc: "Loss rate — equals 1 − W" }, { var: "\\bar{l}", desc: "Average size of losing trades" }] },
+      { type: "stat", stats: [{ value: "R/R", label: "Risk / Reward Ratio", sub: "How much you make on wins vs lose on losses — more important than win rate", color: "#f59e0b" }, { value: "E > 0", label: "Positive Expectancy", sub: "The only real requirement for a strategy to be profitable long-term", color: "#22c55e" }] },
+      { type: "myth", myth: "A higher win rate always means a better strategy.", reality: "**Trend-following strategies like MA Crossover often win less than 50% of trades** — but the winning trades are large and the losing trades are small and cut early. The rare big wins more than cover all the small losses." },
+      { type: "heading", text: "How strategies differ" },
+      { type: "text", text: "**Mean reversion strategies (RSI, Bollinger Bands) tend to have high win rates** — 55–70% — but small wins. They collect lots of small gains and occasionally get caught in a large trending move against them." },
+      { type: "text", text: "**Trend-following strategies have lower win rates** — often 35–50% — but when a real trend develops, they ride it for large gains. The wins are disproportionately big. Both approaches can work — the expectancy is what matters, not the win rate." },
+      { type: "tip", text: "The **Kelly Criterion** is a formula that uses expectancy to calculate the optimal bet size for each trade — maximising long-run growth without risking ruin. Professional quant funds use it (or a fractional version) for position sizing." },
+      { type: "callout", text: "Test it yourself", subtext: "Run RSI vs MA Crossover on the same stock — compare their win frequencies vs return sizes", ticker: "AAPL", strategy: "rsi" }
+    ]
+  },
+  {
+    id: "calmar-ratio",
+    icon: "🛡️",
+    tag: "Metrics",
+    tagColor: "#f59e0b",
+    title: "Calmar Ratio & Drawdown Recovery",
+    subtitle: "The metric serious fund allocators use when raw returns aren't enough",
+    readTime: "5 min read",
+    content: [
+      { type: "intro", text: "The Calmar Ratio divides your annualised return by your maximum drawdown. **It answers the most practical question in investing: how much return are you getting for each unit of pain?** A fund making 20% with a -5% drawdown is completely different to one making 20% with a -40% drawdown." },
+      { type: "tldr", points: ["Calmar = Annualised Return ÷ Max Drawdown — return per unit of risk taken", "Above 1.0 is solid. Above 3.0 is exceptional.", "Drawdown recovery time is just as important as the depth — a -20% loss takes a 25% gain just to get back to even"] },
+      { type: "formula", label: "Formula", formula: "Calmar = \\frac{R_{ann}}{|DD_{max}|}", vars: [{ var: "R_{ann}", desc: "Annualised return — compounded yearly return over the period" }, { var: "DD_{max}", desc: "Maximum drawdown — the worst peak-to-trough loss (as a positive number)" }] },
+      { type: "stat", stats: [{ value: "1.0+", label: "Solid Calmar", sub: "Making at least 1% of annual return per 1% of max drawdown", color: "#f59e0b" }, { value: "3.0+", label: "Exceptional", sub: "What elite quant strategies target in risk-managed portfolios", color: "#22c55e" }] },
+      { type: "heading", text: "The maths of recovery" },
+      { type: "text", text: "**Drawdowns are asymmetric — they hurt more than they look.** Losing 20% feels like a moderate setback. But the maths of recovery is brutally unfair:" },
+      { type: "steps", label: "The Asymmetry of Losses", steps: [
+        { label: "Loss of −20%",  expr: "\\frac{1}{0.80} - 1 = +25\\%\\text{ gain needed to recover}" },
+        { label: "Loss of −40%",  expr: "\\frac{1}{0.60} - 1 = +67\\%\\text{ gain needed to recover}" },
+        { label: "Loss of −50%",  expr: "\\frac{1}{0.50} - 1 = +100\\%\\text{ gain needed to recover}" },
+        { label: "Loss of −75%",  expr: "\\frac{1}{0.25} - 1 = +300\\%\\text{ gain needed to recover}" },
+      ]},
+      { type: "tip", text: "**Time underwater matters as much as depth.** A fund can recover from a -30% drawdown in 3 months or take 3 years. The longer a strategy stays below its peak, the more client redemptions hit — creating a death spiral even if the strategy eventually recovers." },
+      { type: "myth", myth: "If a strategy recovers fully, the drawdown doesn't matter.", reality: "**Investors don't just care about the end result.** A -50% drawdown that recovered over 5 years means investors spent 5 years underwater, often panic-selling at the bottom. Shallow, fast-recovering drawdowns are worth sacrificing some return for." },
+      { type: "heading", text: "Calmar vs Sharpe" },
+      { type: "text", text: "**Sharpe ratio uses daily volatility.** This penalises a strategy that has big up days — even though big up days are exactly what you want. **Calmar only cares about the worst sustained loss** — the most investor-relevant measure of risk." },
+      { type: "text", text: "In practice, **professional fund allocators look at Sharpe, Sortino, and Calmar together.** Each catches different types of risk. A strategy that scores well on all three is genuinely robust." },
+      { type: "callout", text: "Check drawdowns live", subtext: "Run any strategy on TSLA 3y — one of the highest drawdown environments to test against", ticker: "TSLA", strategy: "bollinger" }
     ]
   },
   {
     id: "quant-funds",
     icon: "🏛️",
     tag: "Industry",
-    tagColor: "#a855f7",
+    tagColor: "#f97316",
     title: "How Do Quant Funds Actually Work?",
     subtitle: "Inside the firms that use math to beat the market",
     readTime: "7 min read",
     content: [
-      { type: "intro", text: "Quantitative hedge funds — or quant funds — are investment firms that make trading decisions using mathematical models and algorithms rather than human judgment. They manage hundreds of billions of dollars and employ some of the most talented mathematicians, physicists, and computer scientists in the world. Here's how they actually work." },
+      { type: "intro", text: "Quantitative hedge funds make trading decisions **using mathematical models and algorithms — no human makes individual trade decisions.** They manage hundreds of billions and employ mathematicians, physicists, and engineers, not traditional finance people." },
+      { type: "tldr", points: ["Quant funds run on algorithms — humans set the rules, not the trades", "They test thousands of signals; most fail — only statistically proven ones survive", "The edge isn't the idea. It's execution, risk management, and not overfitting"] },
       { type: "heading", text: "The big names" },
-      { type: "text", text: "Renaissance Technologies, founded by mathematician Jim Simons, is widely considered the most successful investment firm in history. Its Medallion Fund has averaged 66% annual returns before fees since 1988 — a record no other fund has come close to matching. Two Sigma, Citadel, D.E. Shaw, and Jane Street are other major quant firms, each employing thousands of researchers and engineers and trading billions of dollars daily." },
+      { type: "text", text: "**Renaissance Technologies** is widely considered the most successful investment firm in history. Its Medallion Fund has averaged 66% annual returns before fees since 1988 — no other fund is even close." },
+      { type: "text", text: "**Two Sigma, Citadel, D.E. Shaw, and Jane Street** are other major players — each employing thousands of researchers and engineers and trading billions of dollars daily." },
+      { type: "stat", stats: [{ value: "66%", label: "Renaissance Medallion avg return", sub: "Before fees, since 1988 — the greatest track record in finance history", color: "#22c55e" }] },
       { type: "heading", text: "The research process" },
-      { type: "text", text: "Quant funds work by finding 'alpha' — returns above what the market would normally give you. Researchers test thousands of hypotheses: does the stock tend to rise the day after earnings? Does high short interest predict future drops? Does satellite data on store parking lots predict retail sales? Most ideas fail. The ones that survive rigorous statistical testing become signals — inputs into a trading model." },
-      { type: "highlight", text: "Jim Simons on finding patterns: 'We search through historical data looking for anomalous patterns that we would not expect to occur by chance. We then ask whether these patterns might be expected to persist into the future.'" },
-      { type: "heading", text: "The edge is in the details" },
-      { type: "text", text: "What separates elite quant funds from simple algorithmic strategies isn't the basic idea — it's the execution details. How do you handle transaction costs? How do you avoid overfitting your model to historical data? How do you manage correlations between hundreds of simultaneous positions? How do you build systems that remain stable when market conditions change? These are the hard problems, and solving them requires years of research." },
-      { type: "heading", text: "How this connects to QuantWorld" },
-      { type: "text", text: "The strategies on QuantWorld — MA Crossover, RSI, and Bollinger Bands — are the simplest building blocks of quantitative trading. Professional quant researchers start from these same foundations and layer enormous complexity on top. Understanding why a simple MA crossover works sometimes and fails other times, why RSI and Bollinger Bands are effective in volatile markets but struggle in strong trends, and what risk-adjusted return really means — this is the conceptual foundation that every quant researcher needs." },
+      { type: "text", text: "Quant funds hunt for 'alpha' — **returns above what the market normally gives you.** Does the stock rise after earnings? Does high short interest predict drops? Does satellite data on parking lots predict retail sales?" },
+      { type: "text", text: "**Most ideas fail.** The ones that survive rigorous statistical testing become signals — inputs into a model that trades automatically." },
+      { type: "highlight", text: "Jim Simons: 'We search through historical data looking for anomalous patterns that we would not expect to occur by chance. We then ask whether these patterns might be expected to persist into the future.'" },
+      { type: "myth", myth: "Quant funds have secret strategies no one else knows about.", reality: "**The basic ideas are well-known.** Everyone knows moving averages exist. The edge at Renaissance is in execution — handling transaction costs at scale, avoiding overfitting across thousands of signals, and managing risk across 500 simultaneous positions." },
+      { type: "tip", text: "**MA Crossover, RSI, Bollinger Bands, MACD** — these are the exact same building blocks quant researchers start from. Understanding why they work, when they fail, and what risk-adjusted return means is the foundation every quant needs." },
       { type: "callout", text: "Start backtesting", subtext: "Apply what you've learned — test a strategy on any stock", ticker: "SPY", strategy: "ma_crossover" }
+    ]
+  },
+  {
+    id: "hft",
+    icon: "⚡",
+    tag: "Industry",
+    tagColor: "#f97316",
+    title: "What is High-Frequency Trading?",
+    subtitle: "The arms race happening in microseconds beneath every trade you make",
+    readTime: "5 min read",
+    content: [
+      { type: "intro", text: "High-frequency trading (HFT) firms execute **millions of trades per day, holding positions for milliseconds.** They don't predict where stocks are going — they profit from tiny inefficiencies in how orders flow through markets, faster than any human could react." },
+      { type: "tldr", points: ["HFT firms make fractions of a cent per trade — but execute millions of trades per day", "Speed is the edge: firms spend millions on co-location to shave microseconds off execution", "HFT is not the same as algorithmic trading — most quant strategies hold positions for days or weeks"] },
+      { type: "heading", text: "How it actually makes money" },
+      { type: "text", text: "**The most common HFT strategy is market making.** A market maker continuously posts both a buy price and a sell price for a stock. The gap between them is the spread — say, $99.99 bid / $100.01 ask. Anyone buying pays $100.01; anyone selling receives $99.99. The market maker pockets the 2¢ difference." },
+      { type: "text", text: "**On a single trade, 2¢ is nothing.** But a major HFT firm might execute 10 million trades per day across thousands of stocks. At that scale, fractions of a cent become hundreds of millions of dollars annually." },
+      { type: "stat", stats: [{ value: "~50%", label: "Of US equity volume is HFT", sub: "Most of the liquidity you trade against is algorithmic", color: "#f97316" }, { value: "400μs", label: "Typical HFT response time", sub: "400 microseconds — 2,500 times faster than a human blink", color: "#ef4444" }] },
+      { type: "heading", text: "The speed arms race" },
+      { type: "text", text: "**Co-location** is the practice of placing your servers physically inside the stock exchange's data centre — sometimes just metres from the matching engine. Every extra metre of cable adds nanoseconds of latency. Firms pay millions per year for rack space." },
+      { type: "text", text: "Firms have laid **dedicated fibre cables between New York and Chicago** to shave microseconds off data transmission. One firm even used microwave towers — light travels faster through air than through glass fibre. The edge was literally the speed of light." },
+      { type: "tip", text: "HFT firms don't care about where Apple stock is heading next week. **They care about order flow** — who is buying, who is selling, and whether the buy orders are outpacing sells right now. It's a completely different game to fundamental or quantitative investing." },
+      { type: "myth", myth: "HFT firms manipulate markets and are bad for investors.", reality: "The evidence is mixed but mostly positive for retail investors. **HFT market makers have dramatically reduced bid-ask spreads** — the cost of trading fell 80%+ after HFT became widespread. The concern is fairness to institutional investors, not retail." },
+      { type: "callout", text: "See the other side", subtext: "The strategies on QuantWorld hold positions for days — completely different from HFT", ticker: "SPY", strategy: "ma_crossover" }
+    ]
+  },
+  {
+    id: "hedge-funds",
+    icon: "💰",
+    tag: "Industry",
+    tagColor: "#f97316",
+    title: "How Hedge Funds Make Money",
+    subtitle: "2-and-20, alpha vs beta, and why most funds fail to beat a simple index",
+    readTime: "6 min read",
+    content: [
+      { type: "intro", text: "A hedge fund is an investment vehicle that pools capital from wealthy investors and institutions, **charges fees far above any other investment product, and promises to generate alpha** — returns above what the market gives for free. Most fail. A small number generate extraordinary returns. The business model is fascinating either way." },
+      { type: "tldr", points: ["The standard fee is '2 and 20' — 2% of assets per year plus 20% of all profits", "Most hedge funds underperform a simple S&P 500 index fund after fees", "The ones that win (Renaissance, Two Sigma) do so through genuine quantitative edge — not luck"] },
+      { type: "heading", text: "The fee structure" },
+      { type: "text", text: "**'2 and 20'** means the fund charges 2% of assets under management annually — regardless of performance — plus 20% of any profits. On a $1 billion fund earning 15%, that's $20M in management fee plus $30M in performance fee = $50M taken before investors see a dollar." },
+      { type: "stat", stats: [{ value: "2%", label: "Management fee", sub: "Charged every year, win or lose — covers salaries, infrastructure, research", color: "#f97316" }, { value: "20%", label: "Performance fee", sub: "20 cents from every dollar of profit — the real upside for fund managers", color: "#f59e0b" }] },
+      { type: "myth", myth: "Hedge funds consistently beat the market.", reality: "**Warren Buffett bet $1M that an S&P 500 index fund would beat a basket of hedge funds over 10 years.** He won easily. The average hedge fund, after fees, underperforms the index. The ones that do beat it — Renaissance, Citadel, Two Sigma — are statistical outliers with genuine technological and quantitative edges." },
+      { type: "heading", text: "Alpha vs Beta" },
+      { type: "text", text: "**Beta is the free return the market provides** — just holding the S&P 500 gives you ~10% annually historically, with no skill required. **Alpha is everything above that**, adjusted for the risk you took. Most hedge funds charge 2-and-20 for returns that are really just beta dressed up in complexity." },
+      { type: "text", text: "**Genuine alpha is rare and hard to sustain.** Markets are competitive — as soon as an edge is discovered and capital pours in, it arbitrages itself away. Renaissance constantly researches new signals as old ones decay." },
+      { type: "tip", text: "The **high-water mark** protects investors from double-paying fees. If a fund loses 20% one year, it must recover those losses **before** charging performance fees again. Without it, a manager could lose money, then profit on the recovery, collecting performance fees twice on the same capital." },
+      { type: "heading", text: "Why quant funds have an edge" },
+      { type: "text", text: "**Discretionary funds** rely on human analysts forming views on companies. This is slow, emotional, and limited in scale. **Quant funds** test thousands of signals systematically, hold hundreds of positions simultaneously, and remove human emotion from every decision." },
+      { type: "text", text: "**The quant edge is scalable in a way human judgment is not.** Renaissance's Medallion Fund doesn't have 1,000 analysts — it has mathematicians building models that trade thousands of instruments at once. The edge compounds across scale." },
+      { type: "callout", text: "Build the foundation", subtext: "The same signals quant funds start from — test them yourself", ticker: "SPY", strategy: "random_forest" }
     ]
   }
 ];
-function ArticleCard({ article, onClick }) {
+function ArticleCard({ article, onClick, isRead }) {
   return (
     <div
       onClick={onClick}
-      style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: 28, cursor: "pointer", transition: "all 0.2s" }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = "#0ea5e9"; e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(14,165,233,0.1)"; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = "#334155"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
+      style={{
+        background: isRead ? "rgba(14,165,233,0.06)" : "#1e293b",
+        border: isRead ? "1px solid rgba(14,165,233,0.3)" : "1px solid #334155",
+        borderRadius: 20, padding: 28, cursor: "pointer", transition: "all 0.2s",
+        position: "relative", overflow: "hidden",
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = "translateY(-4px)";
+        e.currentTarget.style.borderColor = isRead ? "rgba(14,165,233,0.6)" : "#0ea5e9";
+        e.currentTarget.style.boxShadow = "0 12px 40px rgba(14,165,233,0.1)";
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "none";
+        e.currentTarget.style.borderColor = isRead ? "rgba(14,165,233,0.3)" : "#334155";
+      }}
     >
+      {isRead && (
+        <div style={{ position: "absolute", top: 16, right: 16, background: "rgba(14,165,233,0.15)", border: "1px solid rgba(14,165,233,0.3)", borderRadius: 8, padding: "3px 10px", display: "flex", alignItems: "center", gap: 5 }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: "#0ea5e9", letterSpacing: "0.04em" }}>✓ Read</span>
+        </div>
+      )}
       <div style={{ fontSize: 36, marginBottom: 16 }}>{article.icon}</div>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
         <div style={{ background: article.tagColor + "20", border: `1px solid ${article.tagColor}40`, borderRadius: 6, padding: "3px 10px" }}>
@@ -259,6 +563,98 @@ function ArticleIllustration({ id }) {
         <text x="370" y="20" textAnchor="middle" fill="#475569" fontSize="13" fontWeight="600">Bollinger Bands — Buy at lower band, Sell at upper band</text>
       </svg>
     ),
+    "macd": (
+      <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", background: "#0f172a" }}>
+        {[60,100,140,180,220].map(y => <line key={y} x1="60" y1={y} x2="680" y2={y} stroke="#1e293b" strokeWidth="1"/>)}
+        <line x1="60" y1="140" x2="680" y2="140" stroke="#334155" strokeWidth="1.5"/>
+        <text x="48" y="144" textAnchor="end" fill="#475569" fontSize="11">0</text>
+        <polyline points="60,140 100,128 140,112 180,98 220,92 260,100 300,118 340,130 380,138 420,130 460,115 500,105 540,110 580,122 620,132 660,138" fill="none" stroke="#10b981" strokeWidth="2.5"/>
+        <polyline points="60,140 100,134 140,122 180,108 220,100 260,104 300,116 340,126 380,136 420,132 460,120 500,110 540,112 580,124 620,133 660,139" fill="none" stroke="#f59e0b" strokeWidth="2" strokeDasharray="6,3"/>
+        {[
+          [287,112,287,112,"sell"],
+          [400,134,400,134,"buy"],
+        ].map(([x1,y1,x2,y2,type],i) => {
+          const cx = (x1+x2)/2, cy = (y1+y2)/2;
+          const color = type === "buy" ? "#22c55e" : "#ef4444";
+          const label = type === "buy" ? "BUY" : "SELL";
+          return (
+            <g key={i}>
+              <circle cx={cx} cy={cy} r="8" fill={color}/>
+              <text x={cx} y={type === "buy" ? cy+20 : cy-14} textAnchor="middle" fill={color} fontSize="10" fontWeight="700">{label}</text>
+              <line x1={cx} y1={cy} x2={cx} y2="240" stroke={color} strokeWidth="1" strokeDasharray="4,4" opacity="0.4"/>
+            </g>
+          );
+        })}
+        <line x1="80" y1="265" x2="110" y2="265" stroke="#10b981" strokeWidth="2.5"/>
+        <text x="116" y="269" fill="#10b981" fontSize="12" fontWeight="600">MACD Line</text>
+        <line x1="260" y1="265" x2="290" y2="265" stroke="#f59e0b" strokeWidth="2" strokeDasharray="6,3"/>
+        <text x="296" y="269" fill="#f59e0b" fontSize="12" fontWeight="600">Signal Line (9-day EMA)</text>
+        <text x="370" y="28" textAnchor="middle" fill="#475569" fontSize="13" fontWeight="600">MACD — Buy when MACD crosses above Signal, Sell when it crosses below</text>
+      </svg>
+    ),
+    "volatility": (
+      <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", background: "#0f172a" }}>
+        {/* Left panel - Low Volatility */}
+        <text x="185" y="30" textAnchor="middle" fill="#22c55e" fontSize="13" fontWeight="700">Low Volatility</text>
+        <text x="185" y="46" textAnchor="middle" fill="#475569" fontSize="11">Calm, steady moves</text>
+        {[80,120,160,200].map(y => <line key={y} x1="60" y1={y} x2="320" y2={y} stroke="#1e293b" strokeWidth="1"/>)}
+        <polyline points="60,200 90,194 120,188 150,178 180,170 210,162 240,154 270,148 300,140 320,135" fill="none" stroke="#22c55e" strokeWidth="2.5"/>
+        <text x="185" y="258" textAnchor="middle" fill="#22c55e" fontSize="12" fontWeight="600">σ ≈ 15% annualized</text>
+        <text x="185" y="272" textAnchor="middle" fill="#475569" fontSize="11">e.g. SPY, BRK.B</text>
+        {/* Divider */}
+        <line x1="360" y1="20" x2="360" y2="245" stroke="#334155" strokeWidth="1"/>
+        <text x="360" y="145" textAnchor="middle" fill="#475569" fontSize="18" fontWeight="800">VS</text>
+        {/* Right panel - High Volatility */}
+        <text x="535" y="30" textAnchor="middle" fill="#ef4444" fontSize="13" fontWeight="700">High Volatility</text>
+        <text x="535" y="46" textAnchor="middle" fill="#475569" fontSize="11">Wild, unpredictable swings</text>
+        {[80,120,160,200].map(y => <line key={y} x1="400" y1={y} x2="660" y2={y} stroke="#1e293b" strokeWidth="1"/>)}
+        <polyline points="400,160 420,130 440,175 460,100 480,190 500,80 520,160 540,110 560,195 580,85 600,155 620,90 640,170 660,110" fill="none" stroke="#ef4444" strokeWidth="2.5"/>
+        <text x="535" y="258" textAnchor="middle" fill="#ef4444" fontSize="12" fontWeight="600">σ ≈ 70% annualized</text>
+        <text x="535" y="272" textAnchor="middle" fill="#475569" fontSize="11">e.g. TSLA, NVDA</text>
+      </svg>
+    ),
+    "backtesting": (
+      <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", background: "#0f172a" }}>
+        <defs>
+          <linearGradient id="btGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.25"/>
+            <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0"/>
+          </linearGradient>
+        </defs>
+        {/* Historical price line */}
+        <text x="200" y="28" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="600">Historical Price Data</text>
+        {[70,110,150,190].map(y => <line key={y} x1="40" y1={y} x2="370" y2={y} stroke="#1e293b" strokeWidth="1"/>)}
+        <polyline points="40,190 70,175 100,185 130,155 160,165 190,140 220,150 250,120 280,130 310,105 340,95 370,85" fill="none" stroke="#0ea5e9" strokeWidth="2"/>
+        <polygon points="40,190 70,175 100,185 130,155 160,165 190,140 220,150 250,120 280,130 310,105 340,95 370,85 370,210 40,210" fill="url(#btGrad)"/>
+        {/* Buy/sell dots */}
+        <circle cx="130" cy="155" r="7" fill="#22c55e"/>
+        <text x="130" y="145" textAnchor="middle" fill="#22c55e" fontSize="9" fontWeight="700">BUY</text>
+        <circle cx="250" cy="120" r="7" fill="#ef4444"/>
+        <text x="250" y="110" textAnchor="middle" fill="#ef4444" fontSize="9" fontWeight="700">SELL</text>
+        <circle cx="310" cy="105" r="7" fill="#22c55e"/>
+        <text x="310" y="95" textAnchor="middle" fill="#22c55e" fontSize="9" fontWeight="700">BUY</text>
+        {/* Arrow */}
+        <line x1="385" y1="140" x2="420" y2="140" stroke="#334155" strokeWidth="2"/>
+        <polygon points="420,136 428,140 420,144" fill="#334155"/>
+        <text x="406" y="130" textAnchor="middle" fill="#475569" fontSize="10">simulate</text>
+        {/* Results panel */}
+        <rect x="430" y="50" width="250" height="175" rx="14" fill="#1e293b" stroke="#334155" strokeWidth="1"/>
+        <text x="555" y="78" textAnchor="middle" fill="#fff" fontSize="13" fontWeight="700">Backtest Results</text>
+        <line x1="445" y1="88" x2="665" y2="88" stroke="#334155" strokeWidth="1"/>
+        {[
+          ["Total Return", "+38.4%", "#22c55e"],
+          ["Buy & Hold", "+24.1%", "#64748b"],
+          ["Sharpe Ratio", "1.42", "#0ea5e9"],
+          ["Max Drawdown", "-11.2%", "#f59e0b"],
+          ["Win Rate", "58%", "#a855f7"],
+        ].map(([label, value, color], i) => (
+          <g key={i}>
+            <text x="450" y={110 + i * 22} fill="#64748b" fontSize="12">{label}</text>
+            <text x="665" y={110 + i * 22} textAnchor="end" fill={color} fontSize="12" fontWeight="700">{value}</text>
+          </g>
+        ))}
+      </svg>
+    ),
     "risk-adjusted-returns": (
       <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", background: "#0f172a" }}>
         <text x="200" y="35" textAnchor="middle" fill="#fff" fontSize="14" fontWeight="700">Portfolio A</text>
@@ -274,6 +670,246 @@ function ArticleIllustration({ id }) {
         <text x="550" y="240" textAnchor="middle" fill="#22c55e" fontSize="12">-8% drawdown</text>
         <text x="550" y="258" textAnchor="middle" fill="#0ea5e9" fontSize="13" fontWeight="700">Sharpe: 1.9 ✓</text>
         <text x="370" y="280" textAnchor="middle" fill="#64748b" fontSize="11">Portfolio B wins on risk-adjusted basis despite lower total return</text>
+      </svg>
+    ),
+    "logistic-regression": (
+      <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", background: "#0f172a" }}>
+        {/* Feature columns */}
+        {[["RSI", "#0ea5e9", 72], ["MACD", "#22c55e", 152], ["Bollinger", "#f59e0b", 232], ["Momentum", "#a855f7", 312], ["MA Ratio", "#ef4444", 392]].map(([label, color, x], i) => (
+          <g key={i}>
+            <rect x={x} y="50" width="60" height="140" rx="8" fill={color + "15"} stroke={color + "40"} strokeWidth="1"/>
+            <text x={x + 30} y="44" textAnchor="middle" fill={color} fontSize="10" fontWeight="700">{label}</text>
+            {[0,1,2,3,4,5].map(j => (
+              <rect key={j} x={x + 8} y={60 + j * 20} width={44} height={12} rx={3} fill={color} opacity={0.1 + Math.random() * 0.5}/>
+            ))}
+          </g>
+        ))}
+        {/* Arrow */}
+        <line x1="462" y1="120" x2="500" y2="120" stroke="#334155" strokeWidth="2"/>
+        <polygon points="500,116 510,120 500,124" fill="#334155"/>
+        <text x="486" y="112" textAnchor="middle" fill="#475569" fontSize="10">learn</text>
+        {/* Model box */}
+        <rect x="515" y="70" width="120" height="100" rx="14" fill="rgba(168,85,247,0.12)" stroke="rgba(168,85,247,0.4)" strokeWidth="1.5"/>
+        <text x="575" y="108" textAnchor="middle" fill="#a855f7" fontSize="12" fontWeight="700">Logistic</text>
+        <text x="575" y="124" textAnchor="middle" fill="#a855f7" fontSize="12" fontWeight="700">Regression</text>
+        <text x="575" y="150" textAnchor="middle" fill="#64748b" fontSize="10">P(up) = σ(wᵀx)</text>
+        {/* Arrow to output */}
+        <line x1="635" y1="120" x2="668" y2="120" stroke="#334155" strokeWidth="2"/>
+        <polygon points="668,116 678,120 668,124" fill="#334155"/>
+        {/* Output */}
+        <rect x="678" y="95" width="36" height="22" rx="6" fill="rgba(34,197,94,0.15)" stroke="rgba(34,197,94,0.4)" strokeWidth="1"/>
+        <text x="696" y="109" textAnchor="middle" fill="#22c55e" fontSize="10" fontWeight="700">BUY</text>
+        <rect x="678" y="123" width="36" height="22" rx="6" fill="rgba(239,68,68,0.15)" stroke="rgba(239,68,68,0.4)" strokeWidth="1"/>
+        <text x="696" y="137" textAnchor="middle" fill="#ef4444" fontSize="10" fontWeight="700">SELL</text>
+        {/* Train/test annotation */}
+        <rect x="40" y="210" width="200" height="28" rx="8" fill="rgba(14,165,233,0.08)" stroke="rgba(14,165,233,0.2)" strokeWidth="1"/>
+        <text x="140" y="228" textAnchor="middle" fill="#0ea5e9" fontSize="11" fontWeight="600">Train on first 80% of data</text>
+        <rect x="250" y="210" width="200" height="28" rx="8" fill="rgba(34,197,94,0.08)" stroke="rgba(34,197,94,0.2)" strokeWidth="1"/>
+        <text x="350" y="228" textAnchor="middle" fill="#22c55e" fontSize="11" fontWeight="600">Signal on remaining 20%</text>
+        <text x="370" y="268" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="600">9 features → model learns weights → daily Buy/Sell signal</text>
+      </svg>
+    ),
+    "random-forest": (
+      <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", background: "#0f172a" }}>
+        {/* Three example trees */}
+        {[[120, "#22c55e", "BUY"], [360, "#a855f7", "SELL"], [600, "#22c55e", "BUY"]].map(([cx, color, vote], i) => (
+          <g key={i}>
+            {/* Tree trunk lines */}
+            <line x1={cx} y1="60" x2={cx - 50} y2="120" stroke="#334155" strokeWidth="1.5"/>
+            <line x1={cx} y1="60" x2={cx + 50} y2="120" stroke="#334155" strokeWidth="1.5"/>
+            <line x1={cx - 50} y1="120" x2={cx - 75} y2="175" stroke="#334155" strokeWidth="1.5"/>
+            <line x1={cx - 50} y1="120" x2={cx - 25} y2="175" stroke="#334155" strokeWidth="1.5"/>
+            <line x1={cx + 50} y1="120" x2={cx + 25} y2="175" stroke="#334155" strokeWidth="1.5"/>
+            <line x1={cx + 50} y1="120" x2={cx + 75} y2="175" stroke="#334155" strokeWidth="1.5"/>
+            {/* Nodes */}
+            <circle cx={cx} cy="60" r="14" fill="#0f172a" stroke="#475569" strokeWidth="1.5"/>
+            <text x={cx} y="64" textAnchor="middle" fill="#64748b" fontSize="9">RSI?</text>
+            <circle cx={cx - 50} cy="120" r="14" fill="#0f172a" stroke="#475569" strokeWidth="1.5"/>
+            <text x={cx - 50} y="124" textAnchor="middle" fill="#64748b" fontSize="7.5">MACD?</text>
+            <circle cx={cx + 50} cy="120" r="14" fill="#0f172a" stroke="#475569" strokeWidth="1.5"/>
+            <text x={cx + 50} y="124" textAnchor="middle" fill="#64748b" fontSize="9">Trend?</text>
+            {/* Leaf nodes */}
+            {[cx - 75, cx - 25, cx + 25, cx + 75].map((lx, j) => (
+              <rect key={j} x={lx - 18} y="164" width="36" height="18" rx="5" fill={j === 1 || j === 2 ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)"} stroke={j === 1 || j === 2 ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"} strokeWidth="1"/>
+            ))}
+            <text x={cx} y="35" textAnchor="middle" fill="#475569" fontSize="10">Tree {i + 1}</text>
+            {/* Vote badge */}
+            <rect x={cx - 20} y="200" width="40" height="20" rx="6" fill={color + "20"} stroke={color + "50"} strokeWidth="1"/>
+            <text x={cx} y="213" textAnchor="middle" fill={color} fontSize="10" fontWeight="700">{vote}</text>
+          </g>
+        ))}
+        {/* Majority vote */}
+        <line x1="240" y1="240" x2="340" y2="255" stroke="#334155" strokeWidth="1.5"/>
+        <line x1="360" y1="220" x2="360" y2="255" stroke="#334155" strokeWidth="1.5"/>
+        <line x1="480" y1="240" x2="380" y2="255" stroke="#334155" strokeWidth="1.5"/>
+        <rect x="310" y="255" width="100" height="22" rx="8" fill="rgba(34,197,94,0.15)" stroke="rgba(34,197,94,0.4)" strokeWidth="1.5"/>
+        <text x="360" y="270" textAnchor="middle" fill="#22c55e" fontSize="12" fontWeight="700">BUY (2/3)</text>
+      </svg>
+    ),
+    "quant-glossary": (
+      <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", background: "#0f172a" }}>
+        {/* Row 1 */}
+        {[["Alpha", "#22c55e", 60], ["Beta", "#0ea5e9", 190], ["Signal", "#f59e0b", 310], ["Regime", "#a855f7", 440], ["Overfitting", "#ef4444", 570]].map(([term, color, x]) => (
+          <g key={term}>
+            <rect x={x} y="32" width="120" height="52" rx="14" fill={color + "18"} stroke={color + "55"} strokeWidth="1.5"/>
+            <text x={x + 60} y="54" textAnchor="middle" fill={color} fontSize="15" fontWeight="800">{term}</text>
+            <text x={x + 60} y="72" textAnchor="middle" fill={color + "aa"} fontSize="10" fontWeight="500">
+              {term === "Alpha" ? "return above market" : term === "Beta" ? "market sensitivity" : term === "Signal" ? "trade trigger" : term === "Regime" ? "market environment" : "memorised the past"}
+            </text>
+          </g>
+        ))}
+        {/* Row 2 */}
+        {[["Long", "#22c55e", 60], ["Short", "#ef4444", 190], ["Momentum", "#0ea5e9", 310], ["Mean Reversion", "#8b5cf6", 430], ["Slippage", "#f97316", 580]].map(([term, color, x]) => (
+          <g key={term}>
+            <rect x={x} y="118" width={term === "Mean Reversion" ? 138 : 120} height="52" rx="14" fill={color + "18"} stroke={color + "55"} strokeWidth="1.5"/>
+            <text x={x + (term === "Mean Reversion" ? 69 : 60)} y="140" textAnchor="middle" fill={color} fontSize="15" fontWeight="800">{term}</text>
+            <text x={x + (term === "Mean Reversion" ? 69 : 60)} y="158" textAnchor="middle" fill={color + "aa"} fontSize="10" fontWeight="500">
+              {term === "Long" ? "own it, profit going up" : term === "Short" ? "bet on price falling" : term === "Momentum" ? "winners keep winning" : term === "Mean Reversion" ? "prices snap back" : "real vs expected price"}
+            </text>
+          </g>
+        ))}
+        {/* Row 3 — centered */}
+        {[["Walk-Forward", "#10b981", 130], ["Feature Engineering", "#f59e0b", 290], ["In-Sample / Out-of-Sample", "#0ea5e9", 490]].map(([term, color, x]) => (
+          <g key={term}>
+            <rect x={x} y="204" width={term.length > 18 ? 188 : 148} height="52" rx="14" fill={color + "18"} stroke={color + "55"} strokeWidth="1.5"/>
+            <text x={x + (term.length > 18 ? 94 : 74)} y="226" textAnchor="middle" fill={color} fontSize={term.length > 18 ? 11 : 14} fontWeight="800">{term}</text>
+            <text x={x + (term.length > 18 ? 94 : 74)} y="244" textAnchor="middle" fill={color + "aa"} fontSize="10" fontWeight="500">
+              {term === "Walk-Forward" ? "rolling honest backtest" : term === "Feature Engineering" ? "raw data → model inputs" : "train data vs test data"}
+            </text>
+          </g>
+        ))}
+      </svg>
+    ),
+    "win-rate": (
+      <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", background: "#0f172a" }}>
+        {/* Strategy A — high win rate, bad expectancy */}
+        <text x="185" y="28" textAnchor="middle" fill="#fff" fontSize="13" fontWeight="700">Strategy A</text>
+        <text x="185" y="44" textAnchor="middle" fill="#22c55e" fontSize="11">80% win rate</text>
+        {/* Win trades */}
+        {[70,120,170,220,270,320,370].map((x,i) => (
+          <g key={i}>
+            <rect x={x} y="100" width="28" height="30" rx="4" fill="rgba(34,197,94,0.2)" stroke="rgba(34,197,94,0.5)" strokeWidth="1"/>
+            <text x={x+14} y="119" textAnchor="middle" fill="#22c55e" fontSize="9" fontWeight="700">+1%</text>
+          </g>
+        ))}
+        {/* Loss trades */}
+        {[420,470].map((x,i) => (
+          <g key={i}>
+            <rect x={x} y="65" width="28" height="65" rx="4" fill="rgba(239,68,68,0.2)" stroke="rgba(239,68,68,0.5)" strokeWidth="1"/>
+            <text x={x+14} y="105" textAnchor="middle" fill="#ef4444" fontSize="9" fontWeight="700">-10%</text>
+          </g>
+        ))}
+        <rect x="60" y="158" width="460" height="24" rx="6" fill="rgba(239,68,68,0.1)" stroke="rgba(239,68,68,0.3)" strokeWidth="1"/>
+        <text x="290" y="174" textAnchor="middle" fill="#ef4444" fontSize="12" fontWeight="700">Expectancy: -1.2% per trade ❌</text>
+        {/* Divider */}
+        <line x1="560" y1="20" x2="560" y2="200" stroke="#1e293b" strokeWidth="1.5"/>
+        {/* Strategy B — low win rate, great expectancy */}
+        <text x="640" y="28" textAnchor="middle" fill="#fff" fontSize="13" fontWeight="700">Strategy B</text>
+        <text x="640" y="44" textAnchor="middle" fill="#ef4444" fontSize="11">30% win rate</text>
+        <g>
+          <rect x="575" y="55" width="28" height="75" rx="4" fill="rgba(34,197,94,0.2)" stroke="rgba(34,197,94,0.5)" strokeWidth="1"/>
+          <text x="589" y="96" textAnchor="middle" fill="#22c55e" fontSize="9" fontWeight="700">+15%</text>
+        </g>
+        {[618,661].map((x,i) => (
+          <g key={i}>
+            <rect x={x} y="117" width="28" height="13" rx="4" fill="rgba(239,68,68,0.2)" stroke="rgba(239,68,68,0.5)" strokeWidth="1"/>
+            <text x={x+14} y="127" textAnchor="middle" fill="#ef4444" fontSize="8" fontWeight="700">-3%</text>
+          </g>
+        ))}
+        <rect x="565" y="158" width="130" height="24" rx="6" fill="rgba(34,197,94,0.1)" stroke="rgba(34,197,94,0.3)" strokeWidth="1"/>
+        <text x="630" y="174" textAnchor="middle" fill="#22c55e" fontSize="12" fontWeight="700">+2.4%/trade ✓</text>
+        <text x="370" y="220" textAnchor="middle" fill="#475569" fontSize="12">Win rate means nothing without knowing how big wins and losses are</text>
+      </svg>
+    ),
+    "calmar-ratio": (
+      <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", background: "#0f172a" }}>
+        <defs>
+          <linearGradient id="ddGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#ef4444" stopOpacity="0.2"/>
+            <stop offset="100%" stopColor="#ef4444" stopOpacity="0"/>
+          </linearGradient>
+        </defs>
+        {[60,100,140,180,220].map(y => <line key={y} x1="40" y1={y} x2="680" y2={y} stroke="#1e293b" strokeWidth="1"/>)}
+        {/* Portfolio line — rises, crashes, recovers */}
+        <polyline points="40,200 100,180 160,155 220,130 280,110 340,90 380,85 400,125 430,170 450,200 470,215 510,195 550,170 600,140 650,110 680,90" fill="none" stroke="#0ea5e9" strokeWidth="2.5"/>
+        {/* Drawdown shading */}
+        <polygon points="380,85 400,125 430,170 450,200 470,215 510,195 550,170 600,140 650,110 680,85 680,85 380,85" fill="url(#ddGrad)"/>
+        {/* Peak marker */}
+        <line x1="380" y1="85" x2="380" y2="220" stroke="#f59e0b" strokeWidth="1" strokeDasharray="4,4" opacity="0.6"/>
+        <circle cx="380" cy="85" r="6" fill="#f59e0b"/>
+        <text x="380" y="72" textAnchor="middle" fill="#f59e0b" fontSize="10" fontWeight="700">PEAK</text>
+        {/* Trough marker */}
+        <line x1="470" y1="215" x2="470" y2="220" stroke="#ef4444" strokeWidth="1"/>
+        <circle cx="470" cy="215" r="6" fill="#ef4444"/>
+        <text x="470" y="238" textAnchor="middle" fill="#ef4444" fontSize="10" fontWeight="700">TROUGH</text>
+        {/* Recovery marker */}
+        <line x1="650" y1="110" x2="650" y2="220" stroke="#22c55e" strokeWidth="1" strokeDasharray="4,4" opacity="0.6"/>
+        <circle cx="650" cy="110" r="6" fill="#22c55e"/>
+        <text x="650" y="238" textAnchor="middle" fill="#22c55e" fontSize="10" fontWeight="700">RECOVERY</text>
+        {/* Drawdown arrow */}
+        <line x1="425" y1="85" x2="425" y2="215" stroke="#ef4444" strokeWidth="1.5"/>
+        <polygon points="421,210 425,220 429,210" fill="#ef4444"/>
+        <polygon points="421,90 425,80 429,90" fill="#ef4444"/>
+        <text x="440" y="155" fill="#ef4444" fontSize="11" fontWeight="700">Max DD</text>
+        <text x="370" y="265" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="600">A -50% drawdown requires a +100% gain just to break even</text>
+      </svg>
+    ),
+    "hft": (
+      <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", background: "#0f172a" }}>
+        {/* Exchange in centre */}
+        <rect x="300" y="100" width="120" height="80" rx="14" fill="rgba(249,115,22,0.12)" stroke="rgba(249,115,22,0.5)" strokeWidth="2"/>
+        <text x="360" y="135" textAnchor="middle" fill="#f97316" fontSize="12" fontWeight="800">EXCHANGE</text>
+        <text x="360" y="153" textAnchor="middle" fill="#f97316" fontSize="10">Matching Engine</text>
+        <text x="360" y="168" textAnchor="middle" fill="#64748b" fontSize="9">NYSE / NASDAQ</text>
+        {/* HFT firms */}
+        {[["HFT FIRM A", 80, 120, "#22c55e"], ["HFT FIRM B", 80, 155, "#0ea5e9"], ["HFT FIRM C", 560, 120, "#a855f7"], ["HFT FIRM D", 560, 155, "#10b981"]].map(([label, x, y, color]) => (
+          <g key={label}>
+            <rect x={x} y={y - 14} width="110" height="26" rx="8" fill={color + "15"} stroke={color + "40"} strokeWidth="1"/>
+            <text x={x + 55} y={y + 2} textAnchor="middle" fill={color} fontSize="10" fontWeight="700">{label}</text>
+            <line x1={x > 300 ? x : x + 110} y1={y} x2={x > 300 ? 420 : 300} y2="140" stroke={color} strokeWidth="1" strokeDasharray="3,3" opacity="0.5"/>
+            <text x={x > 300 ? x - 22 : x + 132} y={y - 4} fill={color + "99"} fontSize="8">{x > 300 ? "←" : "→"} 400μs</text>
+          </g>
+        ))}
+        {/* Regular investor */}
+        <rect x="295" y="222" width="130" height="30" rx="8" fill="rgba(100,116,139,0.15)" stroke="#334155" strokeWidth="1"/>
+        <text x="360" y="241" textAnchor="middle" fill="#64748b" fontSize="11" fontWeight="600">Retail Investor</text>
+        <line x1="360" y1="222" x2="360" y2="180" stroke="#475569" strokeWidth="1" strokeDasharray="4,4"/>
+        <text x="375" y="212" fill="#475569" fontSize="9">milliseconds</text>
+        {/* Speed comparison */}
+        <text x="370" y="272" textAnchor="middle" fill="#475569" fontSize="11">HFT responds 2,500× faster than a human blink</text>
+      </svg>
+    ),
+    "hedge-funds": (
+      <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", background: "#0f172a" }}>
+        {/* Fee breakdown visual */}
+        <text x="200" y="28" textAnchor="middle" fill="#fff" fontSize="14" fontWeight="700">$1B Fund, 15% Year</text>
+        <text x="200" y="44" textAnchor="middle" fill="#64748b" fontSize="11">= $150M gross profit</text>
+        {/* Bars */}
+        <rect x="60" y="60" width="120" height="110" rx="8" fill="rgba(249,115,22,0.15)" stroke="rgba(249,115,22,0.4)" strokeWidth="1.5"/>
+        <text x="120" y="108" textAnchor="middle" fill="#f97316" fontSize="13" fontWeight="800">$20M</text>
+        <text x="120" y="126" textAnchor="middle" fill="#f97316" fontSize="11">2% Mgmt</text>
+        <text x="120" y="141" textAnchor="middle" fill="#64748b" fontSize="10">Win or lose</text>
+        <rect x="200" y="60" width="120" height="110" rx="8" fill="rgba(245,158,11,0.15)" stroke="rgba(245,158,11,0.4)" strokeWidth="1.5"/>
+        <text x="260" y="108" textAnchor="middle" fill="#f59e0b" fontSize="13" fontWeight="800">$30M</text>
+        <text x="260" y="126" textAnchor="middle" fill="#f59e0b" fontSize="11">20% Perf.</text>
+        <text x="260" y="141" textAnchor="middle" fill="#64748b" fontSize="10">On profits only</text>
+        <rect x="340" y="88" width="120" height="82" rx="8" fill="rgba(34,197,94,0.1)" stroke="rgba(34,197,94,0.3)" strokeWidth="1.5"/>
+        <text x="400" y="122" textAnchor="middle" fill="#22c55e" fontSize="13" fontWeight="800">$100M</text>
+        <text x="400" y="140" textAnchor="middle" fill="#22c55e" fontSize="11">To Investors</text>
+        <line x1="60" y1="200" x2="460" y2="200" stroke="#334155" strokeWidth="1"/>
+        <text x="120" y="220" textAnchor="middle" fill="#f97316" fontSize="11" fontWeight="700">$20M</text>
+        <text x="260" y="220" textAnchor="middle" fill="#f59e0b" fontSize="11" fontWeight="700">$30M</text>
+        <text x="400" y="220" textAnchor="middle" fill="#22c55e" fontSize="11" fontWeight="700">$100M</text>
+        {/* Divider */}
+        <line x1="520" y1="20" x2="520" y2="250" stroke="#1e293b" strokeWidth="1.5"/>
+        {/* S&P comparison */}
+        <text x="620" y="40" textAnchor="middle" fill="#fff" fontSize="13" fontWeight="700">S&P 500 Index</text>
+        <text x="620" y="56" textAnchor="middle" fill="#22c55e" fontSize="11">0.03% fee</text>
+        <rect x="570" y="70" width="100" height="90" rx="8" fill="rgba(34,197,94,0.12)" stroke="rgba(34,197,94,0.4)" strokeWidth="1.5"/>
+        <text x="620" y="110" textAnchor="middle" fill="#22c55e" fontSize="13" fontWeight="800">$149.7M</text>
+        <text x="620" y="128" textAnchor="middle" fill="#22c55e" fontSize="11">To Investors</text>
+        <text x="620" y="145" textAnchor="middle" fill="#64748b" fontSize="10">Almost all of it</text>
+        <text x="370" y="268" textAnchor="middle" fill="#475569" fontSize="11">Why most hedge funds underperform a simple index fund after fees</text>
       </svg>
     ),
     "quant-funds": (
@@ -295,11 +931,36 @@ function ArticleIllustration({ id }) {
   return illustrations[id] || null;
 }
 
+function renderText(text) {
+  const parts = text.split(/\*\*(.*?)\*\*/g);
+  return parts.map((part, i) =>
+    i % 2 === 1 ? <strong key={i} style={{ color: "#e2e8f0", fontWeight: 700 }}>{part}</strong> : part
+  );
+}
+
 function ArticleView({ article, onBack }) {
   const navigate = useNavigate();
   const { isMobile } = useWindowSize();
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const onScroll = () => {
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(total > 0 ? Math.min(100, (window.scrollY / total) * 100) : 0);
+    };
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [article.id]);
+
+  const previewBlocks = article.content;
+
   return (
     <div style={{ maxWidth: 720, margin: "0 auto", padding: isMobile ? "32px 20px" : "48px 32px" }}>
+      {/* Reading progress bar */}
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 3, background: "#1e293b", zIndex: 999 }}>
+        <div style={{ height: "100%", background: "linear-gradient(90deg, #0ea5e9, #22c55e)", width: `${progress}%`, transition: "width 0.1s linear" }} />
+      </div>
       <button onClick={onBack} style={{ background: "transparent", border: "1px solid #334155", borderRadius: 10, padding: "8px 16px", color: "#64748b", fontSize: 14, cursor: "pointer", marginBottom: 32, display: "flex", alignItems: "center", gap: 8 }}>
         ← Back to Learn
       </button>
@@ -314,25 +975,117 @@ function ArticleView({ article, onBack }) {
       <div style={{ marginBottom: 40, borderRadius: 20, overflow: "hidden", border: "1px solid #334155" }}>
         <ArticleIllustration id={article.id} />
       </div>
+
+      {/* Preview content (always visible) */}
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-        {article.content.map((block, i) => {
-          if (block.type === "intro") return <p key={i} style={{ fontSize: 18, color: "#e2e8f0", lineHeight: 1.9, borderLeft: "3px solid #0ea5e9", paddingLeft: 20, margin: 0 }}>{block.text}</p>;
-          if (block.type === "heading") return <h2 key={i} style={{ fontSize: 22, fontWeight: 800, color: "#fff", letterSpacing: -0.5, margin: 0, marginTop: 8 }}>{block.text}</h2>;
-          if (block.type === "text") return <p key={i} style={{ fontSize: 16, color: "#94a3b8", lineHeight: 1.9, margin: 0 }}>{block.text}</p>;
+        {previewBlocks.map((block, i) => {
+          if (block.type === "intro") return (
+            <p key={i} style={{ fontSize: 18, color: "#e2e8f0", lineHeight: 1.9, borderLeft: "3px solid #0ea5e9", paddingLeft: 20, margin: 0 }}>
+              {renderText(block.text)}
+            </p>
+          );
+          if (block.type === "heading") return (
+            <h2 key={i} style={{ fontSize: 22, fontWeight: 800, color: "#fff", letterSpacing: -0.5, margin: 0, marginTop: 8 }}>{block.text}</h2>
+          );
+          if (block.type === "text") return (
+            <p key={i} style={{ fontSize: 16, color: "#94a3b8", lineHeight: 1.9, margin: 0 }}>
+              {renderText(block.text)}
+            </p>
+          );
+          if (block.type === "tldr") return (
+            <div key={i} style={{ background: "rgba(14,165,233,0.06)", border: "1px solid rgba(14,165,233,0.25)", borderRadius: 16, padding: "18px 22px" }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#0ea5e9", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 14 }}>TL;DR</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {block.points.map((pt, j) => (
+                  <div key={j} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                    <span style={{ color: "#0ea5e9", fontWeight: 700, fontSize: 15, lineHeight: 1.6, flexShrink: 0 }}>→</span>
+                    <span style={{ color: "#7dd3fc", fontSize: 15, lineHeight: 1.6 }}>{pt}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+          if (block.type === "stat") return (
+            <div key={i} style={{ display: "grid", gridTemplateColumns: `repeat(${block.stats.length}, 1fr)`, gap: 14 }}>
+              {block.stats.map((s, j) => (
+                <div key={j} style={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 14, padding: isMobile ? "16px 12px" : "22px 20px", textAlign: "center" }}>
+                  <div style={{ fontSize: isMobile ? 26 : 38, fontWeight: 900, color: s.color || "#0ea5e9", lineHeight: 1, marginBottom: 8, letterSpacing: -1 }}>{s.value}</div>
+                  <div style={{ fontSize: 13, color: "#e2e8f0", fontWeight: 600, marginBottom: 4 }}>{s.label}</div>
+                  {s.sub && <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.5 }}>{s.sub}</div>}
+                </div>
+              ))}
+            </div>
+          );
           if (block.type === "highlight") return (
             <div key={i} style={{ background: "rgba(14,165,233,0.08)", border: "1px solid rgba(14,165,233,0.2)", borderRadius: 14, padding: 24 }}>
               <p style={{ fontSize: 15, color: "#7dd3fc", lineHeight: 1.8, margin: 0, fontStyle: "italic" }}>"{block.text}"</p>
             </div>
           );
           if (block.type === "formula") return (
-            <div key={i} style={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 14, padding: 24 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#0ea5e9", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.08em" }}>{block.label}</div>
-              <div style={{ fontFamily: "monospace", fontSize: isMobile ? 14 : 18, color: "#e2e8f0", marginBottom: 16, whiteSpace: "pre-line" }}>{block.formula}</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div key={i} style={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 14, padding: "20px 28px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#0ea5e9", marginBottom: 16, textTransform: "uppercase", letterSpacing: "0.1em" }}>{block.label}</div>
+              <div style={{ color: "#e2e8f0", borderBottom: "1px solid #1e293b", paddingBottom: 20, marginBottom: 20 }}>
+                <MathExpr display>{block.formula}</MathExpr>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {block.vars.map((v) => (
-                  <div key={v.var} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                    <span style={{ fontFamily: "monospace", fontSize: 13, color: "#0ea5e9", minWidth: 120, flexShrink: 0 }}>{v.var}</span>
-                    <span style={{ fontSize: 14, color: "#64748b", lineHeight: 1.5 }}>{v.desc}</span>
+                  <div key={v.var} style={{ display: "flex", gap: 16, alignItems: "baseline" }}>
+                    <span style={{ flexShrink: 0, minWidth: 110, color: "#7dd3fc" }}>
+                      <MathExpr>{v.var}</MathExpr>
+                    </span>
+                    <span style={{ fontSize: 14, color: "#64748b", lineHeight: 1.6 }}>{v.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+          if (block.type === "steps") return (
+            <div key={i} style={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 14, overflow: "hidden" }}>
+              {block.label && (
+                <div style={{ padding: "10px 20px", borderBottom: "1px solid #1e293b", fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.1em" }}>{block.label}</div>
+              )}
+              {block.steps.map((step, si) => (
+                <div key={si} style={{ display: "flex", borderBottom: si < block.steps.length - 1 ? "1px solid #1e293b" : "none" }}>
+                  <div style={{ padding: "13px 20px", width: 180, flexShrink: 0, borderRight: "1px solid #1e293b", color: "#475569", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center" }}>
+                    {step.label}
+                  </div>
+                  <div style={{ padding: "13px 24px", color: "#e2e8f0", display: "flex", alignItems: "center", flex: 1, fontSize: 15 }}>
+                    <MathExpr>{step.expr}</MathExpr>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+          if (block.type === "myth") return (
+            <div key={i} style={{ borderRadius: 14, overflow: "hidden", border: "1px solid #334155" }}>
+              <div style={{ background: "rgba(239,68,68,0.08)", borderBottom: "1px solid #334155", padding: "12px 20px", display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 15 }}>❌</span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#ef4444", textTransform: "uppercase", letterSpacing: "0.1em" }}>Common Myth</span>
+              </div>
+              <div style={{ background: "#0f172a", padding: "14px 20px", borderBottom: "1px solid #1e293b" }}>
+                <p style={{ fontSize: 15, color: "#94a3b8", margin: 0, fontStyle: "italic" }}>"{block.myth}"</p>
+              </div>
+              <div style={{ background: "rgba(34,197,94,0.06)", borderTop: "1px solid rgba(34,197,94,0.15)", padding: "12px 20px", display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <span style={{ fontSize: 15, flexShrink: 0 }}>✅</span>
+                <p style={{ fontSize: 15, color: "#86efac", margin: 0, lineHeight: 1.6 }}>{renderText(block.reality)}</p>
+              </div>
+            </div>
+          );
+          if (block.type === "tip") return (
+            <div key={i} style={{ background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.25)", borderRadius: 14, padding: "16px 20px", display: "flex", gap: 14, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 18, flexShrink: 0, lineHeight: 1.4 }}>💡</span>
+              <p style={{ fontSize: 15, color: "#6ee7b7", margin: 0, lineHeight: 1.7 }}>{renderText(block.text)}</p>
+            </div>
+          );
+          if (block.type === "terms") return (
+            <div key={i} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {block.label && <div style={{ fontSize: 11, fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>{block.label}</div>}
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 10 }}>
+                {block.items.map((item, j) => (
+                  <div key={j} style={{ background: "#0f172a", border: `1px solid ${item.color}30`, borderLeft: `3px solid ${item.color}`, borderRadius: 12, padding: "14px 18px" }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: item.color, marginBottom: 5 }}>{item.term}</div>
+                    <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6, marginBottom: item.example ? 6 : 0 }}>{item.def}</div>
+                    {item.example && <div style={{ fontSize: 12, color: "#475569", fontStyle: "italic" }}>e.g. {item.example}</div>}
                   </div>
                 ))}
               </div>
@@ -352,29 +1105,68 @@ function ArticleView({ article, onBack }) {
           return null;
         })}
       </div>
+
     </div>
   );
 }
 
+const CATEGORIES = [
+  { label: "All", color: "#94a3b8", bg: "rgba(148,163,184,0.1)", border: "rgba(148,163,184,0.25)" },
+  { label: "Foundations", color: "#0ea5e9", bg: "rgba(14,165,233,0.1)", border: "rgba(14,165,233,0.3)" },
+  { label: "Strategies", color: "#22c55e", bg: "rgba(34,197,94,0.1)", border: "rgba(34,197,94,0.3)" },
+  { label: "Metrics", color: "#f59e0b", bg: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.3)" },
+  { label: "ML Strategy", color: "#a855f7", bg: "rgba(168,85,247,0.1)", border: "rgba(168,85,247,0.3)" },
+  { label: "Industry", color: "#f97316", bg: "rgba(249,115,22,0.1)", border: "rgba(249,115,22,0.3)" },
+];
+
 function Learn() {
   const navigate = useNavigate();
   const { isMobile } = useWindowSize();
+  const { user } = useAuth();
+  const [showAuth, setShowAuth] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState(null);
+  const [activeCategory, setActiveCategory] = useState("All");
+
+  // Read progress — persisted to localStorage always, Firestore when logged in
+  const [readArticles, setReadArticles] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("qw_read") || "[]")); }
+    catch { return new Set(); }
+  });
+
+  // Sync from Firestore on login
+  useEffect(() => {
+    if (!user || !db) return;
+    getDoc(doc(db, "users", user.uid)).then(snap => {
+      if (!snap.exists()) return;
+      const saved = snap.data().readArticles || [];
+      setReadArticles(prev => {
+        const merged = new Set([...prev, ...saved]);
+        localStorage.setItem("qw_read", JSON.stringify([...merged]));
+        return merged;
+      });
+    }).catch(() => {});
+  }, [user]);
+
+  const markRead = useCallback((articleId) => {
+    setReadArticles(prev => {
+      if (prev.has(articleId)) return prev;
+      const next = new Set([...prev, articleId]);
+      localStorage.setItem("qw_read", JSON.stringify([...next]));
+      if (user && db) {
+        setDoc(doc(db, "users", user.uid), { readArticles: [...next] }, { merge: true }).catch(() => {});
+      }
+      return next;
+    });
+  }, [user]);
+
+  const openArticle = (article) => {
+    setSelectedArticle(article);
+    markRead(article.id);
+  };
+
   return (
     <div style={{ minHeight: "100vh", background: "#0f172a", fontFamily: "Inter, sans-serif" }}>
-      <nav style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid #1e293b", padding: isMobile ? "0 20px" : "0 40px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
-        <span onClick={() => navigate("/")} style={{ fontSize: 24, fontWeight: 900, letterSpacing: -1, cursor: "pointer" }}>
-          <span style={{ color: "#0ea5e9", fontSize: 42, fontFamily: "Georgia, serif", verticalAlign: "bottom", lineHeight: 1 }}>Q</span>
-          <span style={{ color: "#fff" }}>uantWorld</span>
-        </span>
-        <div style={{ display: "flex", gap: isMobile ? 12 : 24, alignItems: "center" }}>
-          {!isMobile && <span onClick={() => navigate("/")} style={{ color: "#64748b", fontSize: 14, cursor: "pointer", fontWeight: 500 }}>Home</span>}
-          {!isMobile && <span style={{ color: "#0ea5e9", fontSize: 14, fontWeight: 600 }}>Learn</span>}
-          <button onClick={() => navigate("/backtest")} style={{ padding: isMobile ? "7px 14px" : "8px 20px", background: "#0ea5e9", color: "#fff", border: "none", borderRadius: 10, fontSize: isMobile ? 13 : 14, fontWeight: 700, cursor: "pointer" }}>
-            {isMobile ? "Backtest →" : "Backtest →"}
-          </button>
-        </div>
-      </nav>
+      <Navbar />
       {selectedArticle ? (
         <ArticleView article={selectedArticle} onBack={() => setSelectedArticle(null)} />
       ) : (
@@ -388,27 +1180,50 @@ function Learn() {
               <span style={{ color: "#0ea5e9" }}>Simply.</span>
             </h1>
             <p style={{ fontSize: isMobile ? 16 : 20, color: "#64748b", maxWidth: 560, lineHeight: 1.7 }}>
-              From moving averages to hedge fund strategies — everything explained in plain English with real examples you can test yourself.
+              From moving averages to hedge fund strategies — everything explained simply with real examples you can test yourself.
             </p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 20, marginBottom: 40 }}>
-            {articles.map((article) => (
-              <ArticleCard key={article.id} article={article} onClick={() => setSelectedArticle(article)} />
-            ))}
+          {/* Category filter tabs */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 32 }}>
+            {CATEGORIES.map(cat => {
+              const isActive = activeCategory === cat.label;
+              return (
+                <button
+                  key={cat.label}
+                  onClick={() => setActiveCategory(cat.label)}
+                  style={{
+                    padding: "8px 18px",
+                    borderRadius: 100,
+                    border: `1.5px solid ${isActive ? cat.color : "rgba(51,65,85,0.8)"}`,
+                    background: isActive ? cat.bg : "transparent",
+                    color: isActive ? cat.color : "#64748b",
+                    fontSize: 13,
+                    fontWeight: isActive ? 700 : 500,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                    boxShadow: isActive ? `0 0 12px ${cat.color}30` : "none",
+                    letterSpacing: isActive ? "0.01em" : 0,
+                  }}
+                  onMouseEnter={e => { if (!isActive) { e.currentTarget.style.borderColor = cat.border; e.currentTarget.style.color = cat.color; }}}
+                  onMouseLeave={e => { if (!isActive) { e.currentTarget.style.borderColor = "rgba(51,65,85,0.8)"; e.currentTarget.style.color = "#64748b"; }}}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
           </div>
-          <div style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(14,165,233,0.1) 100%)", border: "1px solid rgba(139,92,246,0.4)", borderRadius: 20, padding: 28, marginBottom: 20, display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 40 }}>🤖</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                <div style={{ background: "#8b5cf6", borderRadius: 6, padding: "3px 10px" }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", textTransform: "uppercase", letterSpacing: "0.06em" }}>Coming Soon</span>
-                </div>
-              </div>
-              <h3 style={{ color: "#fff", fontWeight: 800, fontSize: 18, margin: "0 0 6px" }}>Machine Learning Strategies</h3>
-              <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
-                We're building ML-powered trading strategies — Logistic Regression, Random Forest, and LSTM Neural Networks. Learn how algorithms trained on historical data generate buy/sell signals, and test them against traditional strategies.
-              </p>
-            </div>
+
+          {/* Article grid */}
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 20, marginBottom: 40 }}>
+            {[...articles]
+              .sort((a, b) => {
+                const order = { "Foundations": 0, "Strategies": 1, "ML Strategy": 2, "Metrics": 3, "Industry": 4 };
+                return (order[a.tag] ?? 99) - (order[b.tag] ?? 99);
+              })
+              .filter(a => activeCategory === "All" || a.tag === activeCategory)
+              .map((article) => (
+                <ArticleCard key={article.id} article={article} onClick={() => openArticle(article)} isRead={readArticles.has(article.id)} />
+              ))}
           </div>
           <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: 36, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 20 }}>
             <div>

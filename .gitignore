@@ -1,0 +1,9 @@
+# Python working artifacts
+patch*.py
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment
+.env
+.env.local
