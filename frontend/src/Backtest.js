@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "./AuthContext";
+import AuthModal from "./AuthModal";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceArea } from "recharts";
 import { useWindowSize } from "./useWindowSize";
 import Navbar from "./Navbar";
@@ -91,6 +92,7 @@ function BacktestHistory({ history, onRerun }) {
 function Backtest() {
   const { isMobile } = useWindowSize();
   const { user } = useAuth();
+  const [showAuth, setShowAuth] = useState(false);
   const [ticker, setTicker] = useState("AAPL");
   const [strategy, setStrategy] = useState("ma_crossover");
   const [timeframe, setTimeframe] = useState("1y");
@@ -208,6 +210,7 @@ function Backtest() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#0f172a", fontFamily: "Inter, sans-serif" }}>
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
 
       {/* Fixed loading toast — visible immediately without scrolling */}
       {loading && (
