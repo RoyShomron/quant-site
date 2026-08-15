@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWindowSize } from "./useWindowSize";
 import { useAuth } from "./AuthContext";
-import AuthModal from "./AuthModal";
 import { MathExpr } from "./MathRenderer";
 import Navbar from "./Navbar";
 import { db } from "./firebase";
@@ -1123,7 +1122,6 @@ function Learn() {
   const navigate = useNavigate();
   const { isMobile } = useWindowSize();
   const { user } = useAuth();
-  const [showAuth, setShowAuth] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [activeCategory, setActiveCategory] = useState("All");
 

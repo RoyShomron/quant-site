@@ -63,6 +63,7 @@ function parseExpr(str, ctr) {
       while (j < str.length && /[a-zA-Z]/.test(str[j])) j++;
       const cmd = str.slice(i + 1, j);
       i = j;
+      // eslint-disable-next-line no-loop-func
       const skip = () => { while (i < str.length && str[i] === " ") i++; };
 
       if (cmd === "text" || cmd === "mathrm" || cmd === "textbf") {

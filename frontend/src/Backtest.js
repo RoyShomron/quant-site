@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import AuthModal from "./AuthModal";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceArea, ReferenceLine } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceArea } from "recharts";
 import { useWindowSize } from "./useWindowSize";
 import Navbar from "./Navbar";
 import { db } from "./firebase";
@@ -91,11 +89,8 @@ function BacktestHistory({ history, onRerun }) {
 }
 
 function Backtest() {
-  const navigate = useNavigate();
   const { isMobile } = useWindowSize();
-  const { user, logout } = useAuth();
-  const [showAuth, setShowAuth] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
+  const { user } = useAuth();
   const [ticker, setTicker] = useState("AAPL");
   const [strategy, setStrategy] = useState("ma_crossover");
   const [timeframe, setTimeframe] = useState("1y");
