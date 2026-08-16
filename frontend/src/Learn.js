@@ -996,6 +996,82 @@ function ArticleIllustration({ id }) {
         <text x="370" y="270" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="600">How a quantitative trading system is structured</text>
       </svg>
     ),
+    "options-basics": (
+      <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", background: "#0f172a" }}>
+        <defs>
+          <linearGradient id="callGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#10b981" stopOpacity="0.25"/>
+            <stop offset="100%" stopColor="#10b981" stopOpacity="0"/>
+          </linearGradient>
+          <linearGradient id="putGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#ef4444" stopOpacity="0"/>
+            <stop offset="100%" stopColor="#ef4444" stopOpacity="0.25"/>
+          </linearGradient>
+        </defs>
+        {/* Grid */}
+        {[60,110,160,210].map(y => <line key={y} x1="40" y1={y} x2="680" y2={y} stroke="#1e293b" strokeWidth="1"/>)}
+        {/* Zero line */}
+        <line x1="40" y1="160" x2="680" y2="160" stroke="#334155" strokeWidth="1.5"/>
+        <text x="28" y="164" textAnchor="end" fill="#475569" fontSize="11">0</text>
+        {/* Strike line */}
+        <line x1="360" y1="40" x2="360" y2="240" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="5,4"/>
+        <text x="360" y="34" textAnchor="middle" fill="#f59e0b" fontSize="11" fontWeight="700">Strike K</text>
+        {/* Spot label */}
+        <text x="360" y="255" textAnchor="middle" fill="#64748b" fontSize="11">Stock price at expiry →</text>
+        {/* Long Call payoff line: flat left of strike, rising right */}
+        <polyline points="40,185 360,185 680,40" fill="none" stroke="#10b981" strokeWidth="3"/>
+        <polygon points="40,185 360,185 680,40 680,185 40,185" fill="url(#callGrad)"/>
+        {/* Long Put payoff line: falling left of strike, flat right */}
+        <polyline points="40,40 360,185 680,185" fill="none" stroke="#ef4444" strokeWidth="3"/>
+        <polygon points="40,40 360,185 680,185 680,210 40,210" fill="url(#putGrad)"/>
+        {/* Premium paid labels */}
+        <text x="50" y="180" fill="#10b981" fontSize="10">Premium paid</text>
+        <line x1="80" y1="185" x2="80" y2="160" stroke="#10b981" strokeWidth="1" strokeDasharray="3,3" opacity="0.6"/>
+        <text x="80" y="155" textAnchor="middle" fill="#10b981" fontSize="9">max loss</text>
+        {/* Call label */}
+        <rect x="490" y="65" width="120" height="32" rx="8" fill="rgba(16,185,129,0.15)" stroke="rgba(16,185,129,0.4)" strokeWidth="1"/>
+        <text x="550" y="83" textAnchor="middle" fill="#10b981" fontSize="12" fontWeight="700">📈 Long Call</text>
+        {/* Put label */}
+        <rect x="100" y="55" width="120" height="32" rx="8" fill="rgba(239,68,68,0.15)" stroke="rgba(239,68,68,0.4)" strokeWidth="1"/>
+        <text x="160" y="73" textAnchor="middle" fill="#ef4444" fontSize="12" fontWeight="700">📉 Long Put</text>
+        {/* Unlimited upside arrow */}
+        <text x="620" y="52" fill="#10b981" fontSize="11" fontWeight="600">Unlimited upside →</text>
+        {/* Unlimited downside arrow for put */}
+        <text x="44" y="48" fill="#ef4444" fontSize="11" fontWeight="600">← Profit as stock falls</text>
+        {/* Title */}
+        <text x="370" y="18" textAnchor="middle" fill="#64748b" fontSize="12" fontWeight="600">Call &amp; Put Payoff at Expiry</text>
+      </svg>
+    ),
+    "options-greeks": (
+      <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", background: "#0f172a" }}>
+        {/* Four Greek cards */}
+        {[
+          { x:40,  color:"#3b82f6", symbol:"Δ", name:"Delta",  val:"0.50",   sub:"ATM call moves $0.50\nper $1 stock move", bar:0.5 },
+          { x:220, color:"#ef4444", symbol:"Θ", name:"Theta",  val:"−0.04",  sub:"Lose $0.04 of value\nevery calendar day", bar:0.6 },
+          { x:400, color:"#f59e0b", symbol:"ν", name:"Vega",   val:"0.12",   sub:"Gain $0.12 per 1%\nrise in implied vol", bar:0.4 },
+          { x:580, color:"#8b5cf6", symbol:"Γ", name:"Gamma",  val:"0.025",  sub:"Delta shifts 0.025\nper $1 spot move", bar:0.3 },
+        ].map(({ x, color, symbol, name, val, sub, bar }) => (
+          <g key={name}>
+            <rect x={x} y="30" width="160" height="220" rx="14" fill="#1e293b" stroke={color} strokeWidth="1.5" strokeOpacity="0.4"/>
+            {/* Symbol */}
+            <text x={x+80} y="82" textAnchor="middle" fill={color} fontSize="42" fontWeight="900" fontFamily="serif">{symbol}</text>
+            {/* Name */}
+            <text x={x+80} y="105" textAnchor="middle" fill="#94a3b8" fontSize="12" fontWeight="700" letterSpacing="0.06em">{name.toUpperCase()}</text>
+            {/* Value */}
+            <text x={x+80} y="135" textAnchor="middle" fill={color} fontSize="20" fontWeight="900" fontFamily="monospace">{val}</text>
+            {/* Bar */}
+            <rect x={x+20} y="148" width="120" height="6" rx="3" fill="#0f172a"/>
+            <rect x={x+20} y="148" width={120*bar} height="6" rx="3" fill={color} opacity="0.8"/>
+            {/* Sub text */}
+            {sub.split("\n").map((line, i) => (
+              <text key={i} x={x+80} y={172 + i*16} textAnchor="middle" fill="#64748b" fontSize="11">{line}</text>
+            ))}
+          </g>
+        ))}
+        {/* Title */}
+        <text x="360" y="16" textAnchor="middle" fill="#64748b" fontSize="12" fontWeight="600">The Four Main Greeks — ATM Call, 6 months to expiry, σ = 20%</text>
+      </svg>
+    ),
   };
   return illustrations[id] || null;
 }
