@@ -1043,71 +1043,35 @@ function ArticleIllustration({ id }) {
       </svg>
     ),
     "options-greeks": (
-      <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style={{ width:"100%", background:"#0f172a" }}>
-        {/* 4 panel grid: Delta | Gamma | Theta | Vega */}
-        {/* Panel dividers */}
-        <line x1="180" y1="20" x2="180" y2="265" stroke="#1e293b" strokeWidth="1"/>
-        <line x1="360" y1="20" x2="360" y2="265" stroke="#1e293b" strokeWidth="1"/>
-        <line x1="540" y1="20" x2="540" y2="265" stroke="#1e293b" strokeWidth="1"/>
-
-        {/* ── DELTA (S-curve 0→1) ── */}
-        <text x="90" y="18" textAnchor="middle" fill="#3b82f6" fontSize="12" fontWeight="700">Delta (Call)</text>
-        <text x="90" y="258" textAnchor="middle" fill="#475569" fontSize="10">Spot price →</text>
-        <line x1="20" y1="230" x2="170" y2="230" stroke="#1e293b" strokeWidth="1"/>
-        <line x1="20" y1="130" x2="170" y2="130" stroke="#1e293b" strokeWidth="1" strokeDasharray="3,3"/>
-        <text x="16" y="134" textAnchor="end" fill="#475569" fontSize="9">0.5</text>
-        <text x="16" y="234" textAnchor="end" fill="#475569" fontSize="9">0</text>
-        <text x="16" y="34" textAnchor="end" fill="#475569" fontSize="9">1.0</text>
-        {/* S-curve for call delta */}
-        <path d="M20,226 C40,224 55,220 70,210 S90,170 95,130 S110,50 150,30 L170,28" fill="none" stroke="#3b82f6" strokeWidth="2.5"/>
-        {/* ATM dot */}
-        <circle cx="95" cy="130" r="5" fill="#3b82f6"/>
-        <text x="105" y="127" fill="#3b82f6" fontSize="9">ATM = 0.5</text>
-        {/* Put delta */}
-        <path d="M20,34 C40,36 55,40 70,50 S90,90 95,130 S110,210 150,228 L170,230" fill="none" stroke="#f472b6" strokeWidth="1.5" strokeDasharray="4,3"/>
-        <text x="28" y="48" fill="#f472b6" fontSize="9">Put</text>
-
-        {/* ── GAMMA (bell curve) ── */}
-        <text x="270" y="18" textAnchor="middle" fill="#8b5cf6" fontSize="12" fontWeight="700">Gamma</text>
-        <text x="270" y="258" textAnchor="middle" fill="#475569" fontSize="10">Spot price →</text>
-        <line x1="200" y1="230" x2="350" y2="230" stroke="#1e293b" strokeWidth="1"/>
-        {/* Bell curve */}
-        <path d="M200,228 Q210,226 220,220 Q235,200 245,170 Q255,130 270,50 Q285,130 295,170 Q305,200 320,220 Q330,226 340,228 L350,228" fill="none" stroke="#8b5cf6" strokeWidth="2.5"/>
-        <path d="M200,228 Q210,226 220,220 Q235,200 245,170 Q255,130 270,50 Q285,130 295,170 Q305,200 320,220 Q330,226 340,228 L350,228 L350,230 L200,230Z" fill="#8b5cf6" fillOpacity="0.1"/>
-        <circle cx="270" cy="50" r="5" fill="#8b5cf6"/>
-        <text x="270" y="44" textAnchor="middle" fill="#8b5cf6" fontSize="9">Peak at ATM</text>
-        <text x="270" y="245" textAnchor="middle" fill="#64748b" fontSize="9">Always positive for long options</text>
-
-        {/* ── THETA (accelerating decay) ── */}
-        <text x="450" y="18" textAnchor="middle" fill="#ef4444" fontSize="12" fontWeight="700">Theta (decay)</text>
-        <text x="450" y="258" textAnchor="middle" fill="#475569" fontSize="10">Days to expiry →</text>
-        <line x1="380" y1="230" x2="530" y2="230" stroke="#1e293b" strokeWidth="1"/>
-        <line x1="380" y1="230" x2="380" y2="30" stroke="#1e293b" strokeWidth="1"/>
-        <text x="376" y="234" textAnchor="end" fill="#475569" fontSize="9">0</text>
-        <text x="536" y="234" fill="#475569" fontSize="9">365d</text>
-        {/* Decay curve: fast on left (near expiry), slow on right (far) */}
-        <path d="M380,228 Q390,227 400,224 Q415,218 430,205 Q450,182 470,155 Q490,125 510,90 Q520,70 530,50" fill="none" stroke="#ef4444" strokeWidth="2.5"/>
-        <path d="M380,228 Q390,227 400,224 Q415,218 430,205 Q450,182 470,155 Q490,125 510,90 Q520,70 530,50 L530,230 Z" fill="#ef4444" fillOpacity="0.08"/>
-        <line x1="400" y1="30" x2="400" y2="230" stroke="#ef4444" strokeWidth="1" strokeDasharray="3,3" opacity="0.4"/>
-        <text x="400" y="28" textAnchor="middle" fill="#ef4444" fontSize="9">Last 30d</text>
-        <text x="400" y="38" textAnchor="middle" fill="#ef4444" fontSize="9">↑ decay spikes</text>
-        <text x="450" y="245" textAnchor="middle" fill="#64748b" fontSize="9">Decay accelerates near expiry</text>
-
-        {/* ── VEGA (vol sensitivity) ── */}
-        <text x="630" y="18" textAnchor="middle" fill="#f59e0b" fontSize="12" fontWeight="700">Vega</text>
-        <text x="630" y="258" textAnchor="middle" fill="#475569" fontSize="10">Implied vol →</text>
-        <line x1="560" y1="230" x2="700" y2="230" stroke="#1e293b" strokeWidth="1"/>
-        {/* Linear relationship - vega is roughly proportional to time */}
-        <line x1="560" y1="230" x2="700" y2="60" stroke="#f59e0b" strokeWidth="2.5"/>
-        <polygon points="556,226 560,230 564,222" fill="#f59e0b" opacity="0.5"/>
-        {/* IV spike scenario */}
-        <line x1="615" y1="230" x2="615" y2="30" stroke="#f59e0b" strokeWidth="1" strokeDasharray="3,3" opacity="0.3"/>
-        <text x="618" y="40" fill="#f59e0b" fontSize="9">IV spike</text>
-        <text x="618" y="52" fill="#f59e0b" fontSize="9">(earnings)</text>
-        {/* Arrow showing option price goes up */}
-        <text x="580" y="120" fill="#94a3b8" fontSize="9">Option price</text>
-        <text x="580" y="132" fill="#94a3b8" fontSize="9">rises with vol</text>
-        <text x="630" y="245" textAnchor="middle" fill="#64748b" fontSize="9">Long options profit from rising vol</text>
+      <svg viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg" style={{ width:"100%", background:"#0f172a" }}>
+        {/* 4 clean cards in a row */}
+        {[
+          { x:20,  color:"#3b82f6", letter:"Δ", name:"Delta",  value:"0 to 1",   tag:"Direction",  line1:"How much the option moves", line2:"per $1 change in the stock" },
+          { x:195, color:"#ef4444", letter:"Θ", name:"Theta",  value:"− daily",  tag:"Time",       line1:"Value lost every single day", line2:"even if the stock is flat" },
+          { x:370, color:"#f59e0b", letter:"ν", name:"Vega",   value:"+ vol",    tag:"Volatility", line1:"Gain when implied vol rises,", line2:"lose when vol falls" },
+          { x:545, color:"#8b5cf6", letter:"Γ", name:"Gamma",  value:"Δ speed",  tag:"Curvature",  line1:"How fast delta is changing —", line2:"highest at ATM near expiry" },
+        ].map(({ x, color, letter, name, value, tag, line1, line2 }) => (
+          <g key={name}>
+            {/* Card background */}
+            <rect x={x} y="20" width="160" height="260" rx="16" fill="#1e293b" stroke={color} strokeWidth="1.5" strokeOpacity="0.35"/>
+            {/* Top accent bar */}
+            <rect x={x} y="20" width="160" height="5" rx="3" fill={color} opacity="0.8"/>
+            {/* Greek letter — big and centered */}
+            <text x={x+80} y="98" textAnchor="middle" fill={color} fontSize="56" fontWeight="900">{letter}</text>
+            {/* Name */}
+            <text x={x+80} y="122" textAnchor="middle" fill="#fff" fontSize="15" fontWeight="800">{name}</text>
+            {/* Tag pill */}
+            <rect x={x+40} y="132" width="80" height="20" rx="10" fill={color} fillOpacity="0.15"/>
+            <text x={x+80} y="146" textAnchor="middle" fill={color} fontSize="10" fontWeight="700">{tag.toUpperCase()}</text>
+            {/* Value badge */}
+            <rect x={x+30} y="163" width="100" height="26" rx="8" fill="#0f172a"/>
+            <text x={x+80} y="181" textAnchor="middle" fill={color} fontSize="14" fontWeight="800" fontFamily="monospace">{value}</text>
+            {/* Description lines */}
+            <text x={x+80} y="207" textAnchor="middle" fill="#94a3b8" fontSize="11">{line1}</text>
+            <text x={x+80} y="222" textAnchor="middle" fill="#94a3b8" fontSize="11">{line2}</text>
+          </g>
+        ))}
+        <text x="360" y="294" textAnchor="middle" fill="#334155" fontSize="11">The four Greeks every options trader monitors daily</text>
       </svg>
     ),
   };
