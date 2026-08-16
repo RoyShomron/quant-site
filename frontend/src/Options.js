@@ -246,8 +246,6 @@ export default function Options() {
   const moneyness = S === K ? "At the Money" : S > K ? "In the Money" : "Out of the Money";
   const moneynessColor = S === K ? "#f59e0b" : S > K ? "#10b981" : "#ef4444";
 
-  const greekColors = { delta:"#3b82f6", gamma:"#8b5cf6", theta:"#ef4444", vega:"#f59e0b", rho:EM };
-
   return (
     <div style={{ minHeight:"100vh", background:"#0f172a", fontFamily:"Inter, sans-serif" }}>
       <Navbar />
