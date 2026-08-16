@@ -414,6 +414,76 @@ const articles = [
       { type: "text", text: "**The quant edge is scalable in a way human judgment is not.** Renaissance's Medallion Fund doesn't have 1,000 analysts — it has mathematicians building models that trade thousands of instruments at once. The edge compounds across scale." },
       { type: "callout", text: "Build the foundation", subtext: "The same signals quant funds start from — test them yourself", ticker: "SPY", strategy: "random_forest" }
     ]
+  },
+  {
+    id: "options-basics",
+    icon: "📊",
+    tag: "Derivatives",
+    tagColor: "#10b981",
+    title: "What are Options?",
+    subtitle: "Calls, puts, strikes, and expiry — the building blocks of the options market",
+    readTime: "6 min read",
+    content: [
+      { type: "intro", text: "An option is a **contract that gives you the right, but not the obligation, to buy or sell a stock at a specific price before a certain date.** You pay a premium for that right. Unlike buying stock, your maximum loss is capped at what you paid." },
+      { type: "tldr", points: ["A call option profits when the stock goes up. A put option profits when it goes down.", "You never have to exercise — you can just sell the option itself for a profit", "The premium is what you pay upfront — and your maximum possible loss", "Options expire worthless if they never become profitable — that premium is gone"] },
+      { type: "heading", text: "Calls vs Puts" },
+      { type: "text", text: "**A call option** gives you the right to *buy* 100 shares at the strike price. If Apple is at $180 and you own a call with strike $170, you can buy shares at $170 — instantly $10 ahead. That's intrinsic value." },
+      { type: "text", text: "**A put option** gives you the right to *sell* 100 shares at the strike price. If Apple drops to $150 and you own a put with strike $170, you can sell shares at $170 when they're only worth $150 — $20 of profit per share." },
+      { type: "stat", stats: [
+        { value: "Call", label: "Right to BUY at strike", sub: "Profits when stock rises above strike price", color: "#10b981" },
+        { value: "Put",  label: "Right to SELL at strike", sub: "Profits when stock falls below strike price", color: "#ef4444" }
+      ]},
+      { type: "heading", text: "Key terms" },
+      { type: "steps", label: "Vocabulary", steps: [
+        { label: "Strike price (K)", expr: "\\text{The price you can buy/sell at — locked in at purchase}" },
+        { label: "Expiry date",      expr: "\\text{The deadline. Option is worthless after this date}" },
+        { label: "Premium",          expr: "\\text{What you pay for the option. Your max loss}" },
+        { label: "In the money",     expr: "\\text{Call: } S > K \\quad \\text{Put: } S < K \\quad \\text{(has intrinsic value)}" },
+      ]},
+      { type: "heading", text: "Moneyness — ITM, ATM, OTM" },
+      { type: "text", text: "**In the Money (ITM)** — the option has intrinsic value right now. A call is ITM when spot > strike. A put is ITM when spot < strike. **At the Money (ATM)** — spot and strike are equal. **Out of the Money (OTM)** — the option has no intrinsic value yet. Most options expire OTM." },
+      { type: "tip", text: "**OTM options are cheaper** — they need the stock to move far before paying off. Professional traders buy OTM options for leverage: small premium, big potential gain if the move happens. But they expire worthless most of the time." },
+      { type: "heading", text: "Intrinsic value vs time value" },
+      { type: "formula", label: "Option Premium", formula: "Premium = \\text{Intrinsic Value} + \\text{Time Value}", vars: [
+        { var: "Intrinsic value", desc: "How much the option is worth if exercised right now (max(S−K, 0) for a call)" },
+        { var: "Time value",      desc: "Extra premium for the possibility the stock moves in your favour before expiry" },
+      ]},
+      { type: "text", text: "**Time value decays to zero at expiry** — this is why option buyers lose money over time even when the stock doesn't move. The more time left, the more time value. Near expiry, only intrinsic value remains." },
+      { type: "myth", myth: "Options are extremely risky and only for experts.", reality: "**Buying options limits your downside to the premium paid** — which is often less risky than buying stock. The dangerous strategies (selling naked calls/puts) are different. Understanding what you own is the whole game." },
+    ]
+  },
+  {
+    id: "options-greeks",
+    icon: "🔢",
+    tag: "Derivatives",
+    tagColor: "#10b981",
+    title: "The Greeks Explained",
+    subtitle: "Delta, Gamma, Theta, and Vega — how professionals measure option risk",
+    readTime: "5 min read",
+    content: [
+      { type: "intro", text: "The Greeks are **sensitivity measures** — they tell you exactly how your option's price will change as market conditions change. Every options desk lives and breathes these numbers. You don't need to memorise formulas — you need the intuition." },
+      { type: "tldr", points: ["Delta: how much the option moves per $1 move in the stock", "Theta: how much you lose every single day just from time passing", "Vega: how much you gain/lose per 1% change in implied volatility", "Gamma: how fast your delta is changing — dangerous near expiry"] },
+      { type: "heading", text: "Delta (Δ) — the most important Greek" },
+      { type: "text", text: "**Delta tells you how many dollars your option gains per $1 rise in the stock.** A call with delta 0.5 gains $0.50 when the stock rises $1. A call with delta 0.9 behaves almost like owning the stock. Delta ranges from 0 to 1 for calls, and -1 to 0 for puts." },
+      { type: "formula", label: "Delta intuition", formula: "\\Delta = \\frac{\\Delta \\text{ Option Price}}{\\Delta \\text{ Stock Price}}", vars: [
+        { var: "ATM option", desc: "Delta ≈ 0.50 — stock rises $2, option gains ~$1" },
+        { var: "Deep ITM",   desc: "Delta ≈ 1.0 — option moves dollar-for-dollar with stock" },
+        { var: "Deep OTM",   desc: "Delta ≈ 0.0 — barely moves even when stock rises" },
+      ]},
+      { type: "stat", stats: [
+        { value: "0.5",  label: "ATM call delta",    sub: "Roughly 50% chance of expiring in the money", color: "#3b82f6" },
+        { value: "−0.5", label: "ATM put delta",     sub: "Symmetric — put profits as call loses", color: "#f472b6" },
+      ]},
+      { type: "heading", text: "Theta (Θ) — time is your enemy" },
+      { type: "text", text: "**Every single day, your option loses value** — even if the stock doesn't move. This is theta. An option worth $5.00 today with theta of -0.03 will be worth about $4.97 tomorrow. The decay accelerates sharply in the last 30 days before expiry." },
+      { type: "tip", text: "**Selling options means you collect theta.** Covered calls and cash-secured puts are strategies where you're the one receiving that daily decay. Options desks often run 'short theta' books — selling premium to collect this daily erosion." },
+      { type: "heading", text: "Vega (ν) — volatility exposure" },
+      { type: "text", text: "**Vega measures how much your option gains or loses per 1% change in implied volatility.** When markets are calm, IV is low and options are cheap. When uncertainty spikes (earnings, macro events), IV rises and options become expensive — even if the stock hasn't moved." },
+      { type: "text", text: "**Buying options before high-vol events (earnings, Fed decisions) can be expensive** precisely because IV is already elevated — you need the stock to move *more* than the market expects just to break even. This is called 'buying rich vol.'" },
+      { type: "heading", text: "Gamma (Γ) — delta's rate of change" },
+      { type: "text", text: "**Gamma measures how fast your delta is changing.** High gamma means your option's behaviour is shifting rapidly. ATM options near expiry have very high gamma — their delta can jump from 0.4 to 0.9 in a single session. Options desks actively manage 'gamma risk' because it can cause P&L to swing violently." },
+      { type: "myth", myth: "You only need to watch delta to understand your position.", reality: "**Delta only tells you where you are right now.** Gamma tells you how fast things change. A position with high gamma can go from safe to explosive in hours. Professional traders track both constantly." },
+    ]
   }
 ];
 function ArticleCard({ article, onClick, isRead }) {
@@ -1115,7 +1185,8 @@ const CATEGORIES = [
   { label: "Strategies", color: "#22c55e", bg: "rgba(34,197,94,0.1)", border: "rgba(34,197,94,0.3)" },
   { label: "Metrics", color: "#f59e0b", bg: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.3)" },
   { label: "ML Strategy", color: "#a855f7", bg: "rgba(168,85,247,0.1)", border: "rgba(168,85,247,0.3)" },
-  { label: "Industry", color: "#f97316", bg: "rgba(249,115,22,0.1)", border: "rgba(249,115,22,0.3)" },
+  { label: "Industry",     color: "#f97316", bg: "rgba(249,115,22,0.1)",  border: "rgba(249,115,22,0.3)" },
+  { label: "Derivatives",  color: "#10b981", bg: "rgba(16,185,129,0.1)", border: "rgba(16,185,129,0.3)" },
 ];
 
 function Learn() {
