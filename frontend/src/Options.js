@@ -96,7 +96,6 @@ export default function Options() {
   const price = res ? (optType === "call" ? res.call : res.put) : null;
   const delta = res ? (optType === "call" ? res.deltaCall : res.deltaPut) : null;
   const theta = res ? (optType === "call" ? res.thetaCall : res.thetaPut) : null;
-  const rho   = res ? (optType === "call" ? res.rhoCall   : res.rhoPut)   : null;
 
   const itm = optType === "call" ? S > K : S < K;
   const atm = S === K;
