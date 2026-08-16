@@ -41,10 +41,42 @@ function bs(S, K, T, r, sigma) {
 const EM = "#10b981";
 
 const PAYOFF_TYPES = [
-  { id:"long_call",  label:"Long Call",  color:"#10b981", desc:"Bullish · Max loss = premium" },
-  { id:"long_put",   label:"Long Put",   color:"#ef4444", desc:"Bearish · Max loss = premium" },
-  { id:"short_call", label:"Short Call", color:"#f59e0b", desc:"Neutral/bearish · Max profit = premium" },
-  { id:"short_put",  label:"Short Put",  color:"#8b5cf6", desc:"Neutral/bullish · Max profit = premium" },
+  {
+    id:"long_call",  label:"Long Call",  color:"#10b981",
+    desc:"Bullish · Max loss = premium",
+    what:"You PAY a premium to buy the option.",
+    plain:"You're betting the stock will rise above the strike price before expiry. If it does, you profit. If not, you lose only the premium you paid — nothing more.",
+    profit:"Stock rises above breakeven (strike + premium)",
+    loss:"Stock stays flat or falls — you lose the premium paid",
+    analogy:"Like buying a lottery ticket that pays out if the stock goes up.",
+  },
+  {
+    id:"long_put",   label:"Long Put",   color:"#ef4444",
+    desc:"Bearish · Max loss = premium",
+    what:"You PAY a premium to buy the option.",
+    plain:"You're betting the stock will fall below the strike price. Think of it as insurance — if the stock crashes, your put goes up in value. Max loss is just the premium.",
+    profit:"Stock falls below breakeven (strike − premium)",
+    loss:"Stock stays flat or rises — you lose the premium paid",
+    analogy:"Like buying insurance on a stock you think will drop.",
+  },
+  {
+    id:"short_call", label:"Short Call", color:"#f59e0b",
+    desc:"Neutral/bearish · Max profit = premium",
+    what:"You RECEIVE a premium by selling the option.",
+    plain:"You're selling someone else the right to buy at the strike. You keep the premium if the stock stays below the strike. But if it rises a lot, your losses are unlimited — the buyer exercises against you.",
+    profit:"Stock stays below strike — you pocket the premium",
+    loss:"Stock rises sharply — losses are theoretically unlimited",
+    analogy:"Like collecting rent — steady income, but exposed if something goes wrong.",
+  },
+  {
+    id:"short_put",  label:"Short Put",  color:"#8b5cf6",
+    desc:"Neutral/bullish · Max profit = premium",
+    what:"You RECEIVE a premium by selling the option.",
+    plain:"You're selling someone else the right to sell at the strike. You keep the premium if the stock stays above the strike. If it crashes, you're forced to buy shares at the strike — even if they're worth much less.",
+    profit:"Stock stays above strike — you keep the premium",
+    loss:"Stock crashes — you must buy shares at the strike price",
+    analogy:"Like agreeing to buy a house at today's price in the future — risky if the market tanks.",
+  },
 ];
 
 function InputSlider({ label, value, setValue, min, max, step, fmt }) {
@@ -332,17 +364,27 @@ export default function Options() {
             ))}
           </div>
 
+          {/* Plain-English explainer */}
+          <div style={{ background:`${selPayoff.color}0d`, border:`1px solid ${selPayoff.color}30`, borderRadius:16, padding:"18px 22px", marginBottom:16 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10, flexWrap:"wrap" }}>
+              <span style={{ color:selPayoff.color, fontWeight:800, fontSize:16 }}>{selPayoff.label}</span>
+              <span style={{ background:`${selPayoff.color}20`, color:selPayoff.color, fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:20, letterSpacing:"0.05em" }}>{selPayoff.what}</span>
+            </div>
+            <p style={{ color:"#94a3b8", fontSize:14, margin:"0 0 12px", lineHeight:1.6 }}>{selPayoff.plain}</p>
+            <div style={{ display:"flex", gap:16, flexWrap:"wrap", fontSize:12 }}>
+              <span style={{ color:"#10b981" }}>✓ Profit: <span style={{ color:"#64748b" }}>{selPayoff.profit}</span></span>
+              <span style={{ color:"#ef4444" }}>✗ Loss: <span style={{ color:"#64748b" }}>{selPayoff.loss}</span></span>
+            </div>
+            <div style={{ marginTop:10, color:"#475569", fontSize:12, fontStyle:"italic" }}>💡 {selPayoff.analogy}</div>
+          </div>
+
           <div style={{ background:"#1e293b", border:"1px solid #334155", borderRadius:22, padding:28 }}>
-            {/* Strategy description */}
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20, flexWrap:"wrap", gap:12 }}>
-              <div>
-                <span style={{ color:selPayoff.color, fontWeight:800, fontSize:16 }}>{selPayoff.label}</span>
-                <span style={{ color:"#475569", fontSize:13, marginLeft:12 }}>{selPayoff.desc}</span>
-              </div>
-              <div style={{ display:"flex", gap:16, fontSize:12 }}>
+              <div style={{ color:"#64748b", fontSize:13 }}>Stock price at expiry vs. your P&amp;L</div>
+              <div style={{ display:"flex", gap:10 }}>
                 {breakevens.map((be, i) => (
-                  <div key={i} style={{ background:"rgba(245,158,11,0.1)", border:"1px solid rgba(245,158,11,0.3)", borderRadius:8, padding:"4px 12px", color:"#f59e0b", fontWeight:700 }}>
-                    BE ≈ ${be}
+                  <div key={i} style={{ background:"rgba(245,158,11,0.1)", border:"1px solid rgba(245,158,11,0.3)", borderRadius:8, padding:"4px 12px", color:"#f59e0b", fontWeight:700, fontSize:12 }}>
+                    Breakeven ≈ ${be}
                   </div>
                 ))}
               </div>
