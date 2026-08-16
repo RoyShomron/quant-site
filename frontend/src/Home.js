@@ -91,6 +91,13 @@ function Home() {
               Brainteasers
             </button>
           )}
+          {!isMobile && (
+            <button onClick={() => navigate("/options")} style={{ padding: "9px 20px", background: "rgba(16,185,129,0.08)", color: "#10b981", border: "1.5px solid rgba(16,185,129,0.5)", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all 0.18s", boxShadow: "0 0 12px rgba(16,185,129,0.15)" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(16,185,129,0.15)"; e.currentTarget.style.boxShadow = "0 0 20px rgba(16,185,129,0.3)"; e.currentTarget.style.borderColor = "#10b981"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(16,185,129,0.08)"; e.currentTarget.style.boxShadow = "0 0 12px rgba(16,185,129,0.15)"; e.currentTarget.style.borderColor = "rgba(16,185,129,0.5)"; }}>
+              Options
+            </button>
+          )}
           <button onClick={() => navigate("/learn")} style={{ padding: "9px 24px", background: "#0ea5e9", color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(14,165,233,0.3)" }}>
             {isMobile ? "Learn →" : "Start Learning →"}
           </button>

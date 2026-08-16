@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { label: "Learn",        path: "/learn" },
   { label: "Backtest",     path: "/backtest" },
   { label: "Brainteasers", path: "/brainteasers" },
+  { label: "Options",      path: "/options" },
 ];
 
 export default function Navbar() {

@@ -3,6 +3,7 @@ import Home from "./Home";
 import Backtest from "./Backtest";
 import Learn from "./Learn";
 import Brainteasers from "./Brainteasers";
+import Options from "./Options";
 import { AuthProvider } from "./AuthContext";
 import { Analytics } from "@vercel/analytics/react"
 
@@ -15,6 +16,7 @@ function App() {
           <Route path="/backtest" element={<Backtest />} />
           <Route path="/learn" element={<Learn />} />
           <Route path="/brainteasers" element={<Brainteasers />} />
+          <Route path="/options" element={<Options />} />
         </Routes>
         <Analytics/>
       </BrowserRouter>
