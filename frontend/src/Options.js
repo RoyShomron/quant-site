@@ -243,8 +243,10 @@ export default function Options() {
   const np = netPremium(strategy, S, sK1, sK2, sK3, sK4, T, r, sigma);
   const npPositive = np >= 0;
 
-  const moneyness = S === K ? "At the Money" : S > K ? "In the Money" : "Out of the Money";
-  const moneynessColor = S === K ? "#f59e0b" : S > K ? "#10b981" : "#ef4444";
+  const itm = optType === "call" ? S > K : S < K;
+  const atm = S === K;
+  const moneyness = atm ? "At the Money" : itm ? "In the Money" : "Out of the Money";
+  const moneynessColor = atm ? "#f59e0b" : itm ? "#10b981" : "#ef4444";
 
   return (
     <div style={{ minHeight:"100vh", background:"#0f172a", fontFamily:"Inter, sans-serif" }}>
